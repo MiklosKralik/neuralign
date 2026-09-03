@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neuralign • API Overview</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="doc">
+      <a class="back-link" href="./index.html">← Back to home</a>
+      <h1>API overview</h1>
+
+      <p>The stable top-level imports currently exposed by <code>neuralign</code> are:</p>
+
+      <pre><code>from neuralign import (
+    NeuralignConfig,
+    NeuralignFactors,
+    NeuralignModel,
+    TensorFactors,
+)</code></pre>
+
+      <h2><code>NeuralignModel</code></h2>
+      <p>
+        Constructs and fits a joint decomposition from a sequence of session
+        tensors. Use <code>fit(device)</code> to optimize the model and return
+        exported factors.
+      </p>
+
+      <h2><code>NeuralignConfig</code></h2>
+      <p>
+        A dataclass containing model rank, optimizer settings, loss weights,
+        non-negativity settings, progress behavior, and reproducibility controls.
+      </p>
+
+      <h2><code>NeuralignFactors</code></h2>
+      <p>
+        Stores the global weights, temporal factor, shared geometry, optional
+        condition centroids, configuration, metadata, and all session factors.
+        It supports indexing, persistence, and fitting additional sessions
+        against learned global factors.
+      </p>
+
+      <h2><code>TensorFactors</code></h2>
+      <p>
+        Stores the neuron, trial, projection, and scaling factors for one
+        recording session and provides access to that session's reconstructed
+        tensor.
+      </p>
+    </main>
+  </body>
+</html>

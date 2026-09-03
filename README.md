@@ -45,5 +45,15 @@ model = NeuralignModel(sessions, config=config)
 factors = model.fit("cpu")
 ```
 
-See [Getting started](docs/getting-started.md) and the
-[API overview](docs/api.md) for more detail.
+## Documentation website
+
+A basic GitHub Pages site is available at:
+
+- https://mikloskralik.github.io/neuralign/
+
+It includes:
+
+- [Getting Started](https://mikloskralik.github.io/neuralign/getting-started.html)
+- [API Overview](https://mikloskralik.github.io/neuralign/api.html)
+
+Local documentation sources remain in [`docs/`](docs/).

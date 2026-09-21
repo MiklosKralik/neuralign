@@ -133,6 +133,13 @@ class NeuralignFactors:
         multiple tensors, provide one trial-label sequence per tensor. The
         stored config is inherited by default and can be changed with
         ``config`` or keyword overrides.
+
+        The learned global factors ``w``, ``V``, and ``H`` and any condition
+        prototypes ``C`` remain frozen. Known trial labels use the frozen
+        prototypes to align the new session; unknown labels are warned about
+        and ignored. Sessions without recognized labels use trial-averaged
+        alignment. Optimization histories and the effective configuration are
+        stored in ``metadata["adaptations"]`` on the returned copy.
         """
         # Local import avoids a module cycle: adapt imports these factor types.
         from neuralign.adapt import partial_fit_factors

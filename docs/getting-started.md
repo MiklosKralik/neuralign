@@ -41,3 +41,29 @@ the supported Poisson modes through `loss_type`, optionally together with
 `TensorFactors` object per input session. Index the result to access a session,
 or use its save and adaptation methods to persist a fit or add held-out
 sessions.
+
+## Adapting to held-out sessions
+
+Use `partial_fit` on fitted factors to estimate only the session-specific
+factors for new recordings. The shared weights, temporal factors, geometry,
+and optional condition prototypes remain frozen. The method returns a copy;
+it does not modify the original fit.
+
+```python
+adapted = factors.partial_fit(
+    held_out_tensor,
+    trial_labels=held_out_labels,
+    device="cpu",
+    max_iter=500,
+)
+
+held_out_factors = adapted[-1]
+adaptation_history = adapted.metadata["adaptations"][-1]
+```
+
+A sequence of tensors can be adapted together by supplying one label sequence
+per tensor. Labels matching the fitted condition vocabulary are used for
+condition-aware alignment. Unknown labels produce a warning and are excluded;
+a session with no recognized labels falls back to trial-averaged alignment.
+All new tensors must share the fitted time axis and contain at least as many
+neurons as the fitted rank.

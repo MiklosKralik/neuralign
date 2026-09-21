@@ -40,6 +40,13 @@
         It supports indexing, persistence, and fitting additional sessions
         against learned global factors.
       </p>
+      <p>
+        <code>partial_fit(tensor, trial_labels=None, *, device=None,
+        config=None, **overrides)</code> returns a cloned factor collection with
+        held-out sessions appended. It optimizes only the new session factors;
+        shared factors and condition prototypes remain frozen. Optimization
+        histories are appended to <code>metadata["adaptations"]</code>.
+      </p>
 
       <h2><code>TensorFactors</code></h2>
       <p>

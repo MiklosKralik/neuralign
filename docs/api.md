@@ -28,6 +28,12 @@ centroids, configuration, metadata, and all session factors. It supports
 indexing, persistence, and fitting additional sessions against learned global
 factors.
 
+`partial_fit(tensor, trial_labels=None, *, device=None, config=None,
+**overrides)` returns a cloned factor collection with one or more held-out
+sessions appended. It optimizes only the new sessions' neuron, trial, scaling,
+and projection factors. Shared factors and condition prototypes remain frozen;
+adaptation histories are appended to `metadata["adaptations"]`.
+
 ## `TensorFactors`
 
 Stores the neuron, trial, projection, and scaling factors for one recording

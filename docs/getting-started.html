@@ -60,6 +60,31 @@ factors = model.fit("cpu")</code></pre>
         Index the result to access a session, or use its save and adaptation
         methods to persist a fit or add held-out sessions.
       </p>
+
+      <h2>Adapting to held-out sessions</h2>
+      <p>
+        Use <code>partial_fit</code> on fitted factors to estimate only the
+        session-specific factors for new recordings. Shared factors and optional
+        condition prototypes remain frozen, and the original fit is not modified.
+      </p>
+
+      <pre><code>adapted = factors.partial_fit(
+    held_out_tensor,
+    trial_labels=held_out_labels,
+    device="cpu",
+    max_iter=500,
+)
+
+held_out_factors = adapted[-1]
+adaptation_history = adapted.metadata["adaptations"][-1]</code></pre>
+
+      <p>
+        Multiple tensors can be adapted together by supplying one label sequence
+        per tensor. Known labels use the fitted condition prototypes. Unknown
+        labels produce a warning and are excluded; sessions without recognized
+        labels use trial-averaged alignment. New tensors must share the fitted
+        time axis and contain at least as many neurons as the fitted rank.
+      </p>
     </main>
   </body>
 </html>

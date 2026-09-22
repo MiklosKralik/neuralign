@@ -34,6 +34,28 @@ model = NeuralignModel(
 factors = model.fit("cpu")</code></pre>
 
       <p>
+        Trials can be retained for reconstruction but excluded from alignment
+        with a Boolean <code>trial_mask</code>. Provide one mask per session and
+        one value per trial; <code>True</code> means alignment-excluded and
+        <code>False</code> means alignment-included:
+      </p>
+
+      <pre><code>model = NeuralignModel(
+    session_tensors,
+    trial_labels=session_labels,
+    trial_mask=session_masks,
+    config=NeuralignConfig(rank=6, seed=42),
+)</code></pre>
+
+      <p>
+        In unsupervised mode, masked trials are excluded from the neural and
+        trial-factor averages used to align sessions. In condition-aware mode,
+        they are also excluded from the condition vocabulary, condition
+        centroids, and condition means. They remain in reconstruction and keep
+        their own trial factors. Every session needs an unmasked trial.
+      </p>
+
+      <p>
         Pass <code>"cuda"</code> to <code>fit</code> when a compatible PyTorch
         CUDA installation is available.
       </p>
@@ -69,9 +91,10 @@ factors = model.fit("cpu")</code></pre>
       </p>
 
       <pre><code>adapted = factors.partial_fit(
-    held_out_tensor,
-    trial_labels=held_out_labels,
-    device="cpu",
+	    held_out_tensor,
+	    trial_labels=held_out_labels,
+	    trial_mask=held_out_mask,
+	    device="cpu",
     max_iter=500,
 )
 
@@ -81,9 +104,11 @@ adaptation_history = adapted.metadata["adaptations"][-1]</code></pre>
       <p>
         Multiple tensors can be adapted together by supplying one label sequence
         per tensor. Known labels use the fitted condition prototypes. Unknown
-        labels produce a warning and are excluded; sessions without recognized
-        labels use trial-averaged alignment. New tensors must share the fitted
-        time axis and contain at least as many neurons as the fitted rank.
+	        labels produce a warning and are excluded; sessions without recognized
+	        labels use trial-averaged alignment. Masked trial labels are not used as
+	        anchors and are not reported as unknown. Masked trials are still
+	        reconstructed and receive trial factors. New tensors must share the
+	        fitted time axis, and every session needs an unmasked trial.
       </p>
     </main>
   </body>

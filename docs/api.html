@@ -26,6 +26,14 @@
         tensors. Use <code>fit(device)</code> to optimize the model and return
         exported factors.
       </p>
+      <p>
+        <code>NeuralignModel(tensor_sequence, trial_labels=None,
+        trial_mask=None, config=None, **overrides)</code> accepts one Boolean
+        mask per session. <code>True</code> trials remain in reconstruction but
+        are excluded from unsupervised and condition-aware alignment, including
+        the condition vocabulary and centroids. Every session needs an
+        unmasked trial.
+      </p>
 
       <h2><code>NeuralignConfig</code></h2>
       <p>
@@ -41,11 +49,14 @@
         against learned global factors.
       </p>
       <p>
-        <code>partial_fit(tensor, trial_labels=None, *, device=None,
-        config=None, **overrides)</code> returns a cloned factor collection with
-        held-out sessions appended. It optimizes only the new session factors;
-        shared factors and condition prototypes remain frozen. Optimization
-        histories are appended to <code>metadata["adaptations"]</code>.
+        <code>partial_fit(tensor, trial_labels=None, trial_mask=None, *,
+        device=None, config=None, **overrides)</code> returns a cloned factor
+        collection with held-out sessions appended. It optimizes only the new
+        session factors. <code>True</code> mask entries exclude trials from
+        alignment while retaining them for reconstruction; masked labels are
+        neither anchors nor unknown labels. Shared factors and condition
+        prototypes remain frozen. Optimization histories are appended to
+        <code>metadata["adaptations"]</code>.
       </p>
 
       <h2><code>TensorFactors</code></h2>

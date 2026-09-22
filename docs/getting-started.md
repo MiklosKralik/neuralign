@@ -21,6 +21,25 @@ model = NeuralignModel(
 factors = model.fit("cpu")
 ```
 
+Trials can be retained for reconstruction but excluded from alignment with a
+Boolean `trial_mask`. Provide one mask per session and one value per trial;
+`True` means alignment-excluded and `False` means alignment-included:
+
+```python
+model = NeuralignModel(
+    session_tensors,
+    trial_labels=session_labels,
+    trial_mask=session_masks,
+    config=NeuralignConfig(rank=6, seed=42),
+)
+```
+
+In unsupervised mode, masked trials are excluded from the neural and trial-factor
+averages used to align sessions. In condition-aware mode, they are also
+excluded from the condition vocabulary, condition centroids, and condition
+means. They remain in the reconstruction loss and retain their own rows in the
+trial factors. Every session must contain at least one unmasked trial.
+
 Pass `"cuda"` to `fit` when a compatible PyTorch CUDA installation is
 available.
 
@@ -53,6 +72,7 @@ it does not modify the original fit.
 adapted = factors.partial_fit(
     held_out_tensor,
     trial_labels=held_out_labels,
+    trial_mask=held_out_mask,
     device="cpu",
     max_iter=500,
 )
@@ -65,5 +85,7 @@ A sequence of tensors can be adapted together by supplying one label sequence
 per tensor. Labels matching the fitted condition vocabulary are used for
 condition-aware alignment. Unknown labels produce a warning and are excluded;
 a session with no recognized labels falls back to trial-averaged alignment.
-All new tensors must share the fitted time axis and contain at least as many
-neurons as the fitted rank.
+Masked adaptation trials are not inspected for labels, so they neither anchor
+alignment nor count as unknown labels. They are still reconstructed and receive
+trial factors. All new tensors must share the fitted time axis, and every new
+session must contain at least one unmasked trial.

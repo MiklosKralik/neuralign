@@ -121,6 +121,7 @@ class NeuralignFactors:
         self,
         tensor,
         trial_labels: Sequence[Any] = None,
+        trial_mask: Sequence[Any] = None,
         *,
         device=None,
         config: Union[NeuralignConfig, Dict] = None,
@@ -130,9 +131,10 @@ class NeuralignFactors:
 
         ``tensor`` may be one 3-way tensor or a sequence of them. A cloned
         factor collection is returned with the new sessions appended. For
-        multiple tensors, provide one trial-label sequence per tensor. The
-        stored config is inherited by default and can be changed with
-        ``config`` or keyword overrides.
+        multiple tensors, provide one trial-label and trial-mask sequence per
+        tensor. A ``True`` mask entry excludes that trial from alignment while
+        retaining it for reconstruction. The stored config is inherited by
+        default and can be changed with ``config`` or keyword overrides.
 
         The learned global factors ``w``, ``V``, and ``H`` and any condition
         prototypes ``C`` remain frozen. Known trial labels use the frozen
@@ -148,6 +150,7 @@ class NeuralignFactors:
             self,
             tensor,
             trial_labels=trial_labels,
+            trial_mask=trial_mask,
             device=device,
             config=config,
             **overrides,

@@ -91,16 +91,25 @@ class GlobalProcrustesLoss(torch.nn.Module):
         self.iter = 0
         self.eps = eps # small constant to avoid division by zero in relative error calculation
         
-        # register trial-averaged slices as buffers for each tensor
-        for n, T in enumerate(model.tensors):
-            self.register_buffer(f"TrialAvg_{n}", torch.mean(T, dim=2), persistent=False)
+        # tensor_slices contain averages over alignment trials only
+        for n, trial_avg in enumerate(model.tensor_slices):
+            self.register_buffer(
+                f"TrialAvg_{n}", trial_avg.detach().clone(), persistent=False
+            )
     
     @torch.no_grad()
     def update_projections(self, model):
         for n, _ in enumerate(model.tensors):
             trial_avg = getattr(self, f"TrialAvg_{n}") # shape (neurons, time)
+            trial_factors = model.U[n].index_select(
+                0, model.alignment_indices[n]
+            )
             pred_avg_latents = ops.predicted_latent_trajectories(
-                model.w, model.H, model.S_n[n], model.V, model.U[n].mean(dim=0, keepdim=True)
+                model.w,
+                model.H,
+                model.S_n[n],
+                model.V,
+                trial_factors.mean(dim=0, keepdim=True),
             ).squeeze(0) # shape (time, rank)
             model.Q_n[n].copy_(ops.solve_procrustes(trial_avg, pred_avg_latents.T))
     
@@ -200,6 +209,87 @@ class ConditionProcrustesLoss(torch.nn.Module):
         self.iter += 1
 
         return loss / len(model.tensors)
+
+
+class AdaptationProcrustesLoss(torch.nn.Module):
+    """Align new sessions without changing learned condition prototypes."""
+
+    def __init__(self, model, session_label_info, k=1, eps=1e-12):
+        super().__init__()
+        self.k = k
+        self.iter = 0
+        self.eps = eps
+        self.condition_indices = []
+
+        for n, condition_info in enumerate(session_label_info):
+            condition_ids = tuple(cond for cond, _ in condition_info)
+            self.condition_indices.append(condition_ids)
+            if condition_info:
+                blocks = [
+                    model.tensors[n].index_select(2, indices).mean(dim=2)
+                    for _, indices in condition_info
+                ]
+                observed = torch.cat(blocks, dim=1)
+            else:
+                observed = model.tensors[n].index_select(
+                    2, model.alignment_indices[n]
+                ).mean(dim=2)
+            self.register_buffer(
+                f"Observed_{n}", observed.detach().clone(), persistent=False
+            )
+
+    def _predicted_coordinates(self, model, n):
+        condition_ids = self.condition_indices[n]
+        if condition_ids:
+            blocks = [
+                ops.predicted_latent_trajectories(
+                    model.w,
+                    model.H,
+                    model.S_n[n],
+                    model.V,
+                    model.C[cond].unsqueeze(0),
+                ).squeeze(0)
+                for cond in condition_ids
+            ]
+            return torch.cat(blocks, dim=0)
+
+        trial_factors = model.U[n].index_select(
+            0, model.alignment_indices[n]
+        )
+        return ops.predicted_latent_trajectories(
+            model.w,
+            model.H,
+            model.S_n[n],
+            model.V,
+            trial_factors.mean(dim=0, keepdim=True),
+        ).squeeze(0)
+
+    @torch.no_grad()
+    def update_projections(self, model):
+        for n in range(len(model.tensors)):
+            observed = getattr(self, f"Observed_{n}")
+            predicted = self._predicted_coordinates(model, n)
+            model.Q_n[n].copy_(ops.solve_procrustes(observed, predicted.T))
+
+    def forward(self, model):
+        if self.iter % self.k == 0:
+            self.update_projections(model)
+
+        losses = []
+        for n in range(len(model.tensors)):
+            aligned = model.Q_n[n] @ ops.scale_mixing(
+                model.H, model.S_n[n]
+            )
+            losses.append(
+                relative_fro_error_sq(
+                    model.A[n],
+                    aligned,
+                    torch.linalg.norm(aligned) ** 2 + self.eps,
+                )
+            )
+
+        self.iter += 1
+        return torch.stack(losses).mean()
 
 class ConditionCentroidLoss(torch.nn.Module):
     """ Mean squared error of the learned shared condition centroids vs. the decomposition estimated centroids

@@ -27,6 +27,7 @@ class NeuralignModel(torch.nn.Module):
     
     def __init__(self, tensor_sequence: Sequence[TensorLike],
                  trial_labels: Sequence[Union[np.ndarray, list]] = None,
+                 trial_mask: Sequence[Union[np.ndarray, list]] = None,
                  config: NeuralignConfig = None,
                  **overrides):
         super().__init__()
@@ -45,26 +46,35 @@ class NeuralignModel(torch.nn.Module):
         # tensors live on the CPU by default, cuda can be used during training if specified
         self._tensor_names = []
         self._tensor_slice_names = []
+        self._trial_mask_names = []
+        self._alignment_index_names = []
 
         for n, value in enumerate(tensor_sequence):
             tensor = torch.as_tensor(value).detach().cpu()
 
             tensor_name = f"_tensor_{n}"
-            slice_name = f"_tensor_slice_{n}"
-
             self.register_buffer(tensor_name, tensor, persistent=False)
-            self.register_buffer(
-                slice_name,
-                tensor.mean(dim=2),
-                persistent=False,
-            )
-
             self._tensor_names.append(tensor_name)
+
+        self.tensors = [getattr(self, name) for name in self._tensor_names]
+        self._validate_tensors()
+
+        # Masked trials are retained for reconstruction but omitted from all
+        # quantities used to align sessions.
+        self.init_trial_mask(trial_mask)
+
+        for n, tensor in enumerate(self.tensors):
+            slice_name = f"_tensor_slice_{n}"
+            tensor_slice = tensor.index_select(
+                2, self.alignment_indices[n]
+            ).mean(dim=2)
+            self.register_buffer(
+                slice_name, tensor_slice, persistent=False
+            )
             self._tensor_slice_names.append(slice_name)
-        
+
         # make tensors and tensor_slices indexable by session
         self._refresh_tensor_views()
-        self._validate_tensors()
         
         
         # initialize trial labels if provided
@@ -165,6 +175,44 @@ class NeuralignModel(torch.nn.Module):
         self.tensor_slices = [
             getattr(self, name) for name in self._tensor_slice_names
         ]
+
+    def init_trial_mask(self, trial_mask):
+        """Store trials excluded from alignment and their retained indices."""
+        if trial_mask is None:
+            trial_mask = [None] * len(self.tensors)
+        if len(trial_mask) != len(self.tensors):
+            raise ValueError("Trial masks must contain one entry for each tensor.")
+
+        for n, (tensor, mask) in enumerate(zip(self.tensors, trial_mask)):
+            if mask is None:
+                mask = torch.zeros(tensor.shape[2], dtype=torch.bool)
+            else:
+                mask = torch.as_tensor(mask, dtype=torch.bool)
+            if mask.ndim != 1 or len(mask) != tensor.shape[2]:
+                raise ValueError(
+                    "Trial masks must match the number of trials in each tensor."
+                )
+
+            indices = torch.nonzero(~mask, as_tuple=True)[0]
+            if len(indices) == 0:
+                raise ValueError("Each tensor must contain an unmasked trial.")
+
+            mask_name = f"_trial_mask_{n}"
+            index_name = f"_alignment_indices_{n}"
+            self.register_buffer(mask_name, mask, persistent=False)
+            self.register_buffer(index_name, indices, persistent=False)
+            self._trial_mask_names.append(mask_name)
+            self._alignment_index_names.append(index_name)
+
+        self._refresh_trial_mask_views()
+
+    def _refresh_trial_mask_views(self):
+        self.trial_masks = [
+            getattr(self, name) for name in self._trial_mask_names
+        ]
+        self.alignment_indices = [
+            getattr(self, name) for name in self._alignment_index_names
+        ]
         
     def init_trial_labels(self):
         """Prepare trial labels and indicies for each tensor if provided"""
@@ -180,9 +228,15 @@ class NeuralignModel(torch.nn.Module):
         ):
             raise ValueError("Trial labels must match the number of trials in each tensor.")
             
-        # convert trial labels to torch tensors and encode unique labels as integers
+        # Build the condition vocabulary from alignment trials only. Masked
+        # trials remain in the tensor and in the trial factors.
         self.trial_labels = [np.asarray(labels) for labels in self.trial_labels]
-        all_labels = np.concatenate(self.trial_labels)
+        all_labels = np.concatenate([
+            labels[indices.cpu().numpy()]
+            for labels, indices in zip(
+                self.trial_labels, self.alignment_indices
+            )
+        ])
         unique_labels = [unique.item() for unique in np.unique(all_labels)]
         self.condition_labels = unique_labels
         self.n_conditions = len(unique_labels)
@@ -193,21 +247,16 @@ class NeuralignModel(torch.nn.Module):
         self.session_label_info = [] # session level label info (condition index, trial indices)
         self._label_info_buffer_names = []
         for n, labels in enumerate(self.trial_labels):
-            indices = torch.tensor([label_to_index[label.item()] for label in labels], dtype=torch.long)
-            unique_indices = torch.unique(indices)
+            positions = {}
+            for trial in self.alignment_indices[n].tolist():
+                label = labels[trial].item()
+                positions.setdefault(label_to_index[label], []).append(trial)
             condition_info = []
-            
-            # collect trial indices for each condition
-            max_warning_count = 5
-            for cond in unique_indices:
-                cond_indices = torch.nonzero(indices == cond, as_tuple=True)[0]
-                if len(cond_indices) == 0:
-                    max_warning_count -= 1
-                    if max_warning_count > 0:
-                        print(f"Warning: No trials found for condition {cond.item()} in tensor {n}.")
-                    continue
-                condition_info.append((n, cond.item(), cond_indices))
-                buffer_name = f"_label_info_{n}_{cond.item()}"
+
+            for cond, trials in positions.items():
+                cond_indices = torch.tensor(trials, dtype=torch.long)
+                condition_info.append((n, cond, cond_indices))
+                buffer_name = f"_label_info_{n}_{cond}"
                 self.register_buffer(buffer_name, cond_indices, persistent=False)
                 self._label_info_buffer_names.append(buffer_name)
 
@@ -229,6 +278,7 @@ class NeuralignModel(torch.nn.Module):
         """ Make sure buffers move elegantly with the decomposition"""
         super()._apply(fn, recurse=recurse)
         self._refresh_tensor_views()
+        self._refresh_trial_mask_views()
         self._refresh_Q_views()
         self._refresh_label_info_views()
         return self

@@ -13,6 +13,7 @@ from neuralign.callbacks import EarlyStopping, ProgressBar
 from neuralign.configs import NeuralignConfig, from_dict, override_config, to_dict
 from neuralign.initializers import initialize_trial_factors
 from neuralign.losses import (
+    AdaptationConditionCentroidLoss,
     AdaptationProcrustesLoss,
     GlobalGramLoss,
     NeuronSparsityLoss,
@@ -20,6 +21,8 @@ from neuralign.losses import (
 )
 from neuralign.neuralign_factors import NeuralignFactors, TensorFactors
 from neuralign.trainer import Trainer
+
+DEFAULT_CONDITION_CENTROID_WEIGHT = 1e-2
 
 @dataclass
 class _AdaptationResult:
@@ -176,6 +179,12 @@ def partial_fit_factors(
     session_label_info, ignored = _label_info(
         tensors, labels, masks, vocabulary
     )
+    if cfg.lambda_condition_centroid is None:
+        cfg.lambda_condition_centroid = (
+            DEFAULT_CONDITION_CENTROID_WEIGHT
+            if any(session_label_info)
+            else 0.0
+        )
     if ignored:
         warnings.warn(
             f"Ignoring labels without frozen condition prototypes: {ignored!r}",
@@ -307,6 +316,18 @@ def _adaptation_losses(model, cfg):
     if cfg.lambda_procrustes > 0:
         losses["Coordinates"] = (
             model.coordinate_loss, cfg.lambda_procrustes
+        )
+    if cfg.lambda_condition_centroid > 0:
+        condition_loss = AdaptationConditionCentroidLoss(
+            model.coordinate_loss.session_label_info
+        )
+        if not hasattr(model, "C") or not condition_loss.entries:
+            raise ValueError(
+                "lambda_condition_centroid requires frozen source condition "
+                "prototypes and at least one recognized, unmasked trial label."
+            )
+        losses["Conditions"] = (
+            condition_loss, cfg.lambda_condition_centroid
         )
     if cfg.lambda_neuron_sparsity > 0:
         losses["Sparsity"] = (

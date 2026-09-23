@@ -140,8 +140,12 @@ class NeuralignFactors:
         prototypes ``C`` remain frozen. Known trial labels use the frozen
         prototypes to align the new session; unknown labels are warned about
         and ignored. Sessions without recognized labels use trial-averaged
-        alignment. Optimization histories and the effective configuration are
-        stored in ``metadata["adaptations"]`` on the returned copy.
+        alignment. Set ``lambda_condition_centroid`` to a positive value to
+        regularize each recognized, unmasked condition mean in the new trial
+        factors toward its frozen prototype. Recognized supervised adaptation
+        uses a small default weight when this setting is ``None``; pass ``0.0``
+        to disable it. Optimization histories and the effective configuration
+        are stored in ``metadata["adaptations"]`` on the returned copy.
         """
         # Local import avoids a module cycle: adapt imports these factor types.
         from neuralign.adapt import partial_fit_factors

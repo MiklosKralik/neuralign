@@ -219,6 +219,7 @@ class AdaptationProcrustesLoss(torch.nn.Module):
         self.k = k
         self.iter = 0
         self.eps = eps
+        self.session_label_info = session_label_info
         self.condition_indices = []
 
         for n, condition_info in enumerate(session_label_info):
@@ -290,6 +291,37 @@ class AdaptationProcrustesLoss(torch.nn.Module):
 
         self.iter += 1
         return torch.stack(losses).mean()
+
+
+class AdaptationConditionCentroidLoss(torch.nn.Module):
+    """Match adapted condition means to frozen source prototypes.
+
+    Only recognized, unmasked labels are included. The source prototypes are
+    buffers on the adaptation model, so this loss updates the new trial
+    factors without making the shared condition centroids plastic.
+    """
+
+    def __init__(self, session_label_info):
+        super().__init__()
+        self.entries = []
+        for session, condition_info in enumerate(session_label_info):
+            for condition, indices in condition_info:
+                name = f"Indices_{session}_{condition}"
+                self.register_buffer(
+                    name, indices.detach().clone(), persistent=False
+                )
+                self.entries.append((session, condition, name))
+
+    def forward(self, model):
+        losses = []
+        for session, condition, name in self.entries:
+            indices = getattr(self, name)
+            condition_mean = model.U[session].index_select(0, indices).mean(dim=0)
+            losses.append(
+                torch.linalg.norm(condition_mean - model.C[condition]) ** 2
+            )
+        return torch.stack(losses).mean()
+
 
 class ConditionCentroidLoss(torch.nn.Module):
     """ Mean squared error of the learned shared condition centroids vs. the decomposition estimated centroids

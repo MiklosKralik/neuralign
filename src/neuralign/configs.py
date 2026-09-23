@@ -28,6 +28,10 @@ class NeuralignConfig:
     # loss weights
     lambda_tensor_reconstruction: float = 1.0
     lambda_procrustes: float = 1.0 # coordinate alignment loss (can be condition-aware)
+    # During partial_fit, shrink unmasked condition means in the new trial
+    # factors toward the frozen source condition prototypes. None selects the
+    # supervised-adaptation default and 0.0 explicitly disables the loss.
+    lambda_condition_centroid: float | None = None
     procrustes_every_k: int = 3 # how often to re-compute aligned coordinates (expensive)
     lambda_global_gram: float = 0.0 # global geometry loss (regularizer)
     lambda_neuron_sparsity: float = 0.0 # weight for the neuron sparsity loss (regularizer)

@@ -44,6 +44,14 @@ as anchors and are not reported as unknown labels. Shared factors and condition
 prototypes remain frozen; adaptation histories are appended to
 `metadata["adaptations"]`.
 
+During supervised `partial_fit`, `lambda_condition_centroid=None` resolves to a
+small default weight of `1e-2`. The regularizer penalizes squared distance
+between each new session's unmasked condition-mean trial factor and the
+corresponding frozen source condition prototype. Pass `0.0` to disable it or a
+positive value to override its strength. Explicitly enabling it requires at
+least one recognized, unmasked trial label. Its history is recorded under the
+`Conditions` loss name.
+
 ## `TensorFactors`
 
 Stores the neuron, trial, projection, and scaling factors for one recording

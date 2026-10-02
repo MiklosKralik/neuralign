@@ -32,7 +32,6 @@ class NeuralignModel(torch.nn.Module):
                  **overrides):
         super().__init__()
         
-        print("WARNING: Tensor format should be (neurons, time, trials) for each tensor in the sequence.")
         
         # setup config
         self.cfg = config or NeuralignConfig()

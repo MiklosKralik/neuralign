@@ -1,5 +1,4 @@
 """Losses used to train Neuralign models."""
-from functools import partial
 
 import torch
 

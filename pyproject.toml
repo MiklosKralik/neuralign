@@ -1,9 +1,32 @@
 [project]
 name = "neuralign"
 version = "0.1.0"
-description = "Tensor decomposition methods for aligning neural representations across recording sessions"
+description = "Joint tensor decomposition and alignment of trial-resolved neural recordings"
 readme = "README.md"
 requires-python = ">=3.10"
+authors = [
+    { name = "Miklos Kralik" },
+    { name = "Sasha Tinelli" },
+    { name = "James Kozloski" },
+    { name = "Rui Ponte Costa" },
+    { name = "Andrew Sharott" },
+    { name = "Robert L. Peach" },
+]
+keywords = [
+    "computational neuroscience",
+    "tensor decomposition",
+    "neural population dynamics",
+    "representation alignment",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy>=1.26",
     "opt-einsum>=3.4.0",
@@ -12,13 +35,17 @@ dependencies = [
 ]
 
 [project.urls]
+Documentation = "https://mikloskralik.github.io/neuralign/"
 Repository = "https://github.com/MiklosKralik/neuralign"
+Issues = "https://github.com/MiklosKralik/neuralign/issues"
 
 [build-system]
 requires = ["uv_build >= 0.11.2, <0.12.0"]
 build-backend = "uv_build"
 
-[tool.uv]
-override-dependencies = [
-    "numpy>=2.1; python_version >= '3.13'",
-]
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.12"]
+
+[tool.uv.build-backend]
+source-include = ["CITATION.cff", "docs/**", "examples/**", "tests/**", ".github/**"]
+

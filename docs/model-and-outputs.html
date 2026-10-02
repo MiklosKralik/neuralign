@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Neuralign • Model and outputs</title><link rel="stylesheet" href="./style.css"/></head>
+<body><main class="doc"><a class="back-link" href="./index.html">← Back to home</a>
+<h1>Model and outputs</h1>
+<p>Neuralign combines a CP tensor reconstruction with a soft PARAFAC2-inspired alignment. Shared temporal factors establish component identity; session-specific neuron and trial factors retain the map to recorded cells and individual trials.</p>
+<h2>Representations</h2><ul>
+<li><code>factors.V</code>: shared temporal factors, <code>(time, rank)</code>.</li>
+<li><code>factors[i].trial_factors</code>: trial expression, <code>(trials, rank)</code>.</li>
+<li><code>factors[i].neuron_factors</code>: neuron loadings, <code>(neurons, rank)</code>.</li>
+<li><code>latent_trajectories()</code>: rank-constrained predictions, <code>(trials, time, rank)</code>.</li>
+<li><code>projected_trajectories(Z)</code>: measured activity projected with the session matrix <code>Q</code>.</li>
+<li><code>reconstructed_tensor()</code>: fitted activity in the original tensor layout.</li>
+</ul>
+<h2>Interpretation</h2><p>Use trial factors for trial-to-trial component expression, predicted trajectories for rank-constrained denoising, and projected trajectories when linear neuron or region contributions matter. Components remain subject to permutation, sign and scale conventions; match components before comparing independent fits.</p>
+<h2>Held-out sessions</h2><p><code>partial_fit</code> freezes global weights, temporal factors, mixing geometry and condition prototypes while estimating the factors of new sessions. Joint-fit decoder transfer and prospective held-out-session adaptation are distinct evaluations.</p>
+<p>The complete mathematical description and validation guidance are in the source document <a href="./model-and-outputs.md">model-and-outputs.md</a>.</p>
+</main></body></html>

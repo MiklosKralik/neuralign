@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Neuralign • Reproducibility</title><link rel="stylesheet" href="./style.css"/></head>
+<body><main class="doc"><a class="back-link" href="./index.html">← Back to home</a>
+<h1>Reproducibility guide</h1>
+<h2>Record the full analysis state</h2><p>Archive repository commits, the lockfile, hardware and software versions, session inclusion tables, preprocessing, trial masks, complete configuration, model seeds, fitted factors, decoder folds and tidy plotted data.</p>
+<h2>Validate the scientific unit</h2><p>Optimization seeds measure fit stability, not biological replication. Use grouped folds for session transfer, preserve negative regression scores, and treat absent regions as unavailable rather than zero activity.</p>
+<h2>Check model sensitivity</h2><p>Inspect reconstruction and alignment losses across nearby ranks, match components between initializations, and compare conclusions with hierarchy-preserving nulls. Clearly separate representation fitting from downstream decoder validation.</p>
+<h2>Persistence</h2><p><code>NeuralignFactors.save</code> records exported factors, configuration and metadata. Load only trusted files because persistence uses PyTorch serialization.</p>
+<p>See <a href="./reproducibility.md">reproducibility.md</a> for the complete checklist.</p>
+</main></body></html>

@@ -51,7 +51,22 @@ session_neurons = factors[0].neuron_factors     # (neurons, rank)
 predicted = factors[0].latent_trajectories()    # (trials, time, rank)
 projected = factors[0].projected_trajectories(sessions[0])
 reconstruction = factors[0].reconstructed_tensor()
+component = factors[0].reconstructed_tensor(components=2)  # (neurons, time, trials)
+latent = factors[0].reconstructed_latent_tensor()          # (rank, time, trials)
+latent_subset = factors[0].reconstructed_latent_tensor(components=[0, 2])
+trajectories = factors[0].latent_trajectories(components=[0, 2])
+unit_weight_latent = factors[0].reconstructed_latent_tensor(components=2, normalized=True)
 ```
+
+Component indices are zero-based. Omitting `components` reconstructs all components;
+an empty sequence returns zeros. Selecting n components gives a rank-at-most-n
+contribution, retaining all output neurons or latent coordinates. The latent
+reconstruction uses `w, H, S, V, U`; the full reconstruction uses `w, A, V, U`.
+Their magnitudes can differ because the fitted `A` is only softly matched to `Q H diag(S)`.
+All three reconstruction methods accept `normalized=False` by default.
+With `normalized=True`, global weights `w` are replaced by ones without modifying
+stored factors. Session gains `S` and other factors are retained; this is not
+unit-norm normalization. Gradients then bypass `w`.
 
 Run the complete synthetic example, including held-out-session adaptation, with:
 

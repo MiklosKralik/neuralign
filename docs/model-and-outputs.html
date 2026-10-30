@@ -10,7 +10,16 @@
 <li><code>latent_trajectories()</code>: rank-constrained predictions, <code>(trials, time, rank)</code>.</li>
 <li><code>projected_trajectories(Z)</code>: measured activity projected with the session matrix <code>Q</code>.</li>
 <li><code>reconstructed_tensor()</code>: fitted activity in the original tensor layout.</li>
+<li><code>reconstructed_latent_tensor()</code>: aligned prediction in <code>(latent coordinates, time, trials)</code> layout using <code>w, H, S, V, U</code>.</li>
 </ul>
+<h2>Selected components</h2>
+<pre><code>session.reconstructed_tensor(components=2)
+session.reconstructed_tensor(components=[0, 2])
+session.reconstructed_latent_tensor(components=[0, 2])
+session.latent_trajectories(components=[0, 2])</code></pre>
+<p>All three methods also accept <code>normalized=False</code>. Set <code>normalized=True</code> to use unit global weights instead of w, without changing stored factors. This retains session gains S and every other factor; it does not impose a unit output norm. Gradients bypass w in this mode.</p>
+<p>Indices are zero-based and distinct. Omit <code>components</code> for all components; an empty sequence returns zeros. Selecting n components gives a rank-at-most-n contribution, retaining all output neurons or latent coordinates and preserving dtype, device, and gradients. Selection restricts columns of H, not latent coordinate rows.</p>
+<p>Multiplying the latent tensor by orthonormal Q preserves its Frobenius norm, but equals the fitted full reconstruction only when A = Q H diag(S). With soft coupling the two reconstructions measure different quantities. See the source document for formulas and validation guidance.</p>
 <h2>Interpretation</h2><p>Use trial factors for trial-to-trial component expression, predicted trajectories for rank-constrained denoising, and projected trajectories when linear neuron or region contributions matter. Components remain subject to permutation, sign and scale conventions; match components before comparing independent fits.</p>
 <h2>Held-out sessions</h2><p><code>partial_fit</code> freezes global weights, temporal factors, mixing geometry and condition prototypes while estimating the factors of new sessions. Joint-fit decoder transfer and prospective held-out-session adaptation are distinct evaluations.</p>
 <p>The complete mathematical description and validation guidance are in the source document <a href="./model-and-outputs.md">model-and-outputs.md</a>.</p>

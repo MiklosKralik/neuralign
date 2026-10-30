@@ -13,6 +13,7 @@ H : global mixing matrix (rank, rank)
 S_n : component scaling matrix (diagonal) (rank,)
 """
 from dataclasses import dataclass
+import operator
 from typing import Any, Dict, List, Sequence, Union
 
 import torch
@@ -271,15 +272,14 @@ class SessionFactorView:
         """
         return ops.predicted_neuron_factors(self.projection_matrix, self.mixing_matrix, self.scaling_matrix)
     
-    def latent_trajectories(self, layout="ktr"):
+    def latent_trajectories(self, layout="ktr", *, components=None, normalized=False):
+        """Return selected-component predictions in ``ktr`` or ``tkr`` layout.
+
+        ``components`` follows :meth:`reconstructed_tensor`. All latent
+        coordinates are retained, even when selecting a single component.
+        ``normalized=True`` replaces global weights w with ones.
         """
-        Return the latent latent trajectories for this session, 
-        i.e. the predicted trajectoris in the low-dimensional latent space (trials (k), time (t), rank (r))
-        """
-        out = ops.predicted_latent_trajectories(
-            self.weight_matrix, self.mixing_matrix, self.scaling_matrix,
-            self.temporal_factors, self.trial_factors
-        )
+        out = self.reconstructed_latent_tensor(components, normalized=normalized).permute(2, 1, 0)
         return _apply_layout(out, layout)
     
     def projected_trajectories(self, Z, layout="ktr"):
@@ -293,13 +293,93 @@ class SessionFactorView:
         )
         return _apply_layout(out, layout)
     
-    def reconstructed_tensor(self):
+    def reconstructed_tensor(self, components=None, *, normalized=False):
+        """Reconstruct selected CP components as ``(neurons, time, trials)``.
+
+        Pass a zero-based integer or a one-dimensional sequence of distinct
+        nonnegative integer indices. ``None`` uses all stored components;
+        an empty sequence returns zeros. Selecting n components gives a
+        rank-at-most-n contribution, without modifying or reordering factors.
+        Dtype, device, and autograd connections are preserved.
+        ``normalized=True`` uses unit global weights instead of w, leaving
+        every other factor and the stored weights unchanged. It does not
+        normalize the output norm or session gains; gradients then bypass w.
         """
-        Return the reconstructed neural activity tensor for this session (neurons, time, trials)
-        """
+        indices = _component_indices(components, self.weight_matrix)
+        w = torch.ones_like(self.weight_matrix) if normalized else self.weight_matrix
+        if indices is not None:
+            return ops.reconstruct_tensor(
+                w.index_select(0, indices),
+                self.neuron_factors.index_select(1, indices),
+                self.temporal_factors.index_select(1, indices),
+                self.trial_factors.index_select(1, indices),
+            )
         return ops.reconstruct_tensor(
-            self.weight_matrix, self.neuron_factors, self.temporal_factors, self.trial_factors
+            w, self.neuron_factors, self.temporal_factors, self.trial_factors
         )
+
+    def reconstructed_latent_tensor(self, components=None, *, normalized=False):
+        """Reconstruct ``(latent coordinates, time, trials)`` using w, H, S, V, U.
+
+        ``components`` follows :meth:`reconstructed_tensor`. Selection restricts
+        the contributing columns of H, not its rows: all latent coordinates
+        remain in the output. This is the aligned prediction; multiplying by Q
+        uses Q H diag(S), which need not equal the fitted neuron factors A.
+        ``normalized=True`` replaces only global weights w with ones,
+        preserving H, S, V, U and all stored factors, and bypassing w gradients.
+        """
+        indices = _component_indices(components, self.weight_matrix)
+        w, H, S = self.weight_matrix, self.mixing_matrix, self.scaling_matrix
+        if normalized:
+            w = torch.ones_like(w)
+        V, U = self.temporal_factors, self.trial_factors
+        if indices is not None:
+            w, S = w.index_select(0, indices), S.index_select(0, indices)
+            H = H.index_select(1, indices)
+            V, U = V.index_select(1, indices), U.index_select(1, indices)
+        return ops.predicted_latent_trajectories(w, H, S, V, U).permute(2, 1, 0)
+
+
+def _component_indices(components, weights):
+    """Validate component selection without silently coercing floats or booleans."""
+    if components is None:
+        return None
+    dtype = getattr(components, "dtype", None)
+    if isinstance(components, bool) or dtype == torch.bool or getattr(dtype, "kind", None) == "b":
+        raise TypeError("components must contain integer indices, not booleans")
+    ndim = getattr(components, "ndim", 0)
+    if ndim == 1:
+        values = list(components)
+    elif ndim != 0:
+        raise TypeError("components must be one-dimensional")
+    else:
+        try:
+            operator.index(components)
+            values = [components]
+        except TypeError:
+            if isinstance(components, (str, bytes)):
+                raise TypeError("components must be an integer or a one-dimensional integer sequence")
+            try:
+                values = list(components)
+            except TypeError:
+                raise TypeError("components must be an integer or a one-dimensional integer sequence") from None
+    indices = []
+    for value in values:
+        dtype = getattr(value, "dtype", None)
+        if (isinstance(value, bool) or dtype == torch.bool
+                or getattr(dtype, "kind", None) == "b"
+                or getattr(value, "ndim", 0) != 0):
+            raise TypeError("components must contain scalar integer indices, not booleans or nested sequences")
+        try:
+            index = operator.index(value)
+        except TypeError:
+            raise TypeError("components must contain integer indices") from None
+        if not 0 <= index < weights.numel():
+            raise IndexError(f"component index {index} is out of bounds for rank {weights.numel()}")
+        if index in indices:
+            raise ValueError("components must contain distinct indices")
+        indices.append(index)
+    return torch.tensor(indices, dtype=torch.long, device=weights.device)
 
 
 def _apply_layout(value, layout):

@@ -1,70 +1,178 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Neuralign • API Overview</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main class="doc">
-      <a class="back-link" href="./index.html">← Back to home</a>
-      <h1>API overview</h1>
-
-      <p>The stable top-level imports currently exposed by <code>neuralign</code> are:</p>
-
-      <pre><code>from neuralign import (
-    NeuralignConfig,
-    NeuralignFactors,
-    NeuralignModel,
-    TensorFactors,
-)</code></pre>
-
-      <h2><code>NeuralignModel</code></h2>
-      <p>
-        Constructs and fits a joint decomposition from a sequence of session
-        tensors. Use <code>fit(device)</code> to optimize the model and return
-        exported factors.
-      </p>
-      <p>
-        <code>NeuralignModel(tensor_sequence, trial_labels=None,
-        trial_mask=None, config=None, **overrides)</code> accepts one Boolean
-        mask per session. <code>True</code> trials remain in reconstruction but
-        are excluded from unsupervised and condition-aware alignment, including
-        the condition vocabulary and centroids. Every session needs an
-        unmasked trial.
-      </p>
-
-      <h2><code>NeuralignConfig</code></h2>
-      <p>
-        A dataclass containing model rank, optimizer settings, loss weights,
-        non-negativity settings, progress behavior, and reproducibility controls.
-      </p>
-
-      <h2><code>NeuralignFactors</code></h2>
-      <p>
-        Stores the global weights, temporal factor, shared geometry, optional
-        condition centroids, configuration, metadata, and all session factors.
-        It supports indexing, persistence, and fitting additional sessions
-        against learned global factors.
-      </p>
-      <p>
-        <code>partial_fit(tensor, trial_labels=None, trial_mask=None, *,
-        device=None, config=None, **overrides)</code> returns a cloned factor
-        collection with held-out sessions appended. It optimizes only the new
-        session factors. <code>True</code> mask entries exclude trials from
-        alignment while retaining them for reconstruction; masked labels are
-        neither anchors nor unknown labels. Shared factors and condition
-        prototypes remain frozen. Optimization histories are appended to
-        <code>metadata["adaptations"]</code>.
-      </p>
-
-      <h2><code>TensorFactors</code></h2>
-      <p>
-        Stores the neuron, trial, projection, and scaling factors for one
-        recording session and provides access to that session's reconstructed
-        tensor.
-      </p>
-    </main>
-  </body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API · Neuralign</title><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" aria-current=page>API</a> <a href="reproducibility.html" >Reproducibility</a></nav><main><h1>API reference</h1>
+<pre><code class="language-python">from neuralign import NeuralignConfig, NeuralignModel, NeuralignFactors
+</code></pre>
+<h2>NeuralignConfig</h2>
+<p><code>NeuralignConfig(**settings)</code> sets fitting options. Common settings are:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rank</code></td>
+<td><code>4</code></td>
+<td>Number of components</td>
+</tr>
+<tr>
+<td><code>max_iter</code></td>
+<td><code>2000</code></td>
+<td>Maximum optimisation steps</td>
+</tr>
+<tr>
+<td><code>lr</code></td>
+<td><code>0.01</code></td>
+<td>Adam learning rate</td>
+</tr>
+<tr>
+<td><code>patience</code></td>
+<td><code>100</code></td>
+<td>Early-stopping patience</td>
+</tr>
+<tr>
+<td><code>tol</code></td>
+<td><code>1e-6</code></td>
+<td>Early-stopping improvement threshold</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td><code>None</code></td>
+<td>Random seed; set explicitly for repeatable runs</td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code>True</code></td>
+<td>Display fitting progress</td>
+</tr>
+<tr>
+<td><code>lambda_tensor_reconstruction</code></td>
+<td><code>1.0</code></td>
+<td>Reconstruction-loss weight</td>
+</tr>
+<tr>
+<td><code>lambda_procrustes</code></td>
+<td><code>1.0</code></td>
+<td>Soft alignment-loss weight</td>
+</tr>
+<tr>
+<td><code>non_negative</code></td>
+<td><code>False</code></td>
+<td>Nonnegative factor constraint</td>
+</tr>
+<tr>
+<td><code>loss_type</code></td>
+<td><code>&quot;frobenius&quot;</code></td>
+<td>Reconstruction loss; also <code>&quot;poisson&quot;</code> or <code>&quot;poisson_log&quot;</code></td>
+</tr>
+</tbody>
+</table>
+<p>The simulation uses continuous data and the default Frobenius loss. Count losses require appropriately prepared nonnegative count data; they are not for z-scored observations.</p>
+<h2>NeuralignModel</h2>
+<pre><code class="language-python">NeuralignModel(tensor_sequence, trial_labels=None, trial_mask=None,
+               config=None, **overrides)
+model.fit(device=&quot;cpu&quot;)
+</code></pre>
+<p>Construct the model from session tensors, then call <code>fit</code> to obtain <code>NeuralignFactors</code>. Configuration keywords can also be passed as overrides. Each session uses neurons × time × trials; all sessions share a time axis.</p>
+<p><code>trial_labels</code> supplies one sequence of labels per session. Without labels, alignment uses trial means; with labels, it uses condition means.</p>
+<p><code>trial_mask</code> supplies one Boolean array per session. <strong>True excludes a trial from alignment only.</strong> Masked trials still contribute to reconstruction and receive trial factors. A mask therefore does not fully hold trials out of model fitting. Every session needs at least one unmasked trial.</p>
+<h2>NeuralignFactors</h2>
+<p>The fitted collection holds <code>w</code>, <code>V</code>, <code>H</code>, configuration, metadata and session factors.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>len(factors)</code></td>
+<td>Number of sessions</td>
+</tr>
+<tr>
+<td><code>factors.session(i)</code> or <code>factors[i]</code></td>
+<td>Session view with named factor properties</td>
+</tr>
+<tr>
+<td><code>factors.to(device)</code></td>
+<td>Move stored tensors to a device</td>
+</tr>
+<tr>
+<td><code>factors.save(path)</code></td>
+<td>Save factors, configuration and metadata</td>
+</tr>
+<tr>
+<td><code>NeuralignFactors.load(path, map_location=&quot;cpu&quot;)</code></td>
+<td>Load a saved fit</td>
+</tr>
+<tr>
+<td><code>factors.partial_fit(...)</code></td>
+<td>Fit new sessions with shared factors frozen</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python">factors.save(&quot;fit.pt&quot;)
+loaded = NeuralignFactors.load(&quot;fit.pt&quot;)
+adapted = loaded.partial_fit(new_session, device=&quot;cpu&quot;, max_iter=500)
+new_view = adapted[-1]
+</code></pre>
+<p><code>partial_fit(tensor, trial_labels=None, trial_mask=None, *, device=None, config=None, **overrides)</code> returns a copy with new sessions appended. It freezes <code>w</code>, <code>V</code>, <code>H</code> and any condition prototypes, and fits only new session factors. A sequence of new sessions is also accepted. All must share the fitted time axis. With labels, recognised conditions anchor alignment; unknown labels are omitted from alignment. The original collection is unchanged.</p>
+<h2>Session view</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neuron_factors</code></td>
+<td>neurons × components</td>
+</tr>
+<tr>
+<td><code>trial_factors</code></td>
+<td>trials × components</td>
+</tr>
+<tr>
+<td><code>projection_matrix</code></td>
+<td>neurons × latent coordinates</td>
+</tr>
+<tr>
+<td><code>scaling_matrix</code></td>
+<td>components</td>
+</tr>
+<tr>
+<td><code>weight_matrix</code></td>
+<td>components; shared w</td>
+</tr>
+<tr>
+<td><code>temporal_factors</code></td>
+<td>time × components; shared V</td>
+</tr>
+<tr>
+<td><code>mixing_matrix</code></td>
+<td>latent coordinates × components; shared H</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python">session.reconstructed_tensor(components=None, *, normalized=False)
+session.reconstructed_latent_tensor(components=None, *, normalized=False)
+session.latent_trajectories(layout=&quot;ktr&quot;, *, components=None, normalized=False)
+session.projected_trajectories(Z, layout=&quot;ktr&quot;)
+</code></pre>
+<p>The first three methods accept one integer or a one-dimensional sequence of distinct component indices. Negative, duplicate, Boolean, noninteger and out-of-range indices are rejected. Outputs preserve device, dtype and gradients. <code>normalized=True</code> uses unit global weights without changing stored factors. See <a href="model-and-outputs.html">Model and outputs</a> for shapes and interpretation.</p>
+<p><code>predicted_neuron_factors()</code> returns <code>Q @ H @ diag(S)</code>; <code>scaled_mixing_matrix()</code> returns <code>H @ diag(S)</code>. <code>TensorFactors</code> is the lower-level storage class for a session's <code>A</code>, <code>U</code>, <code>Q</code> and <code>S</code>; use the session view for routine analysis.</p>
+<h2>Simulation helper</h2>
+<pre><code class="language-python">from neuralign.simulation import simulate_sessions
+sessions, truth = simulate_sessions(n_sessions=4, n_time=64, noise_std=0.15, seed=42)
+</code></pre>
+<p>Generates rank-two recordings with different neuron/trial counts. <code>noise_std</code> is relative to each clean signal's standard deviation. <code>truth</code> stores shared temporal factors and per-session generating factors. The helper uses NumPy and PyTorch only.</p>
+</main>
+<footer>Neuralign · research software · version 0.1.0</footer></body></html>

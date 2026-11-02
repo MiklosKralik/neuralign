@@ -1,79 +1,58 @@
 # Model and outputs
 
-Neuralign jointly models session tensors with shape `(neurons, time, trials)`. For session \(n\), the reconstruction is
+Each session is reconstructed as a sum of components:
 
-\[
-\hat Z^{(n)} = \sum_{r=1}^{R} w_r A^{(n)}_r \circ V_r \circ U^{(n)}_r.
-\]
-
-`V` and `w` are shared. Each session has its own neuron factors `A`, trial factors `U`, orthonormal projection `Q`, and component gains `S`. A soft penalty draws the neuron factors toward
-
-\[
-Q^{(n)} H \operatorname{diag}(S^{(n)}),
-\]
-
-where `H` is the shared mixing matrix. Reconstruction still uses `A`, so a session can retain structure that is not perfectly shared.
-
-## Which representation should I use?
-
-- `factors.V` contains shared temporal factors with shape `(time, rank)`.
-- `factors[index].trial_factors` contains trial-level component expression with shape `(trials, rank)`.
-- `factors[index].neuron_factors` maps components to recorded neurons with shape `(neurons, rank)`.
-- `factors[index].latent_trajectories()` returns rank-constrained predicted trajectories with shape `(trials, time, rank)`.
-- `factors[index].projected_trajectories(session_tensor)` linearly projects measured activity with `Q` and returns `(trials, time, rank)`.
-- `factors[index].reconstructed_tensor()` returns the fitted tensor in the original `(neurons, time, trials)` layout.
-- `factors[index].reconstructed_latent_tensor()` returns the aligned prediction in `(latent coordinates, time, trials)` layout.
-
-### Reconstruct selected components
-
-```python
-session = factors.session(0)
-full = session.reconstructed_tensor()                  # all stored components
-one = session.reconstructed_tensor(components=2)       # one zero-based component
-subset = session.reconstructed_tensor(components=[0, 2])
-latent = session.reconstructed_latent_tensor(components=[0, 2])
-trials_first = session.latent_trajectories(components=[0, 2])
-unit_weights = session.reconstructed_latent_tensor(components=[0, 2], normalized=True)
+```text
+Z_hat[n, neuron, time, trial]
+    = sum(w[c] * A[n][neuron,c] * V[time,c] * U[n][trial,c])
 ```
 
-Pass a scalar integer or a one-dimensional sequence of distinct nonnegative integer
-indices. `None` selects all components and an empty sequence returns a correctly
-shaped zero tensor. Invalid types, duplicates, and out-of-range indices raise errors.
-Outputs retain dtype, device, and gradients; reconstruction does not alter the factors.
-Selecting n components produces a rank-at-most-n contribution, not an automatic
-ranking or a new rank-n fit.
+`w` and the temporal factors `V` are shared. Each session has neuron factors `A`, trial factors `U`, an orthonormal projection `Q` and gains `S`. The shared mixing matrix `H` links component directions across sessions through a soft constraint:
 
-For a selected set C the latent reconstruction is
-`L[a,t,k] = sum(H[a,c] * S[c] * w[c] * V[t,c] * U[k,c] for c in C)`.
-Selection restricts the contributing columns of `H`, while retaining every output
-latent coordinate. `latent_trajectories("ktr", components=...)` and `"tkr"` use the
-same reconstruction with different layouts, preserving existing calls.
+```text
+A[n] ≈ Q[n] @ H @ diag(S[n])
+```
 
-Multiplication by the orthonormal `Q` preserves the latent tensor's Frobenius norm.
-It gives the full neuron-space reconstruction only when `A = Q H diag(S)`; under
-soft coupling, latent reconstruction and reconstruction using fitted `A` measure
-different quantities. Signed scalar changes still require an explicit orientation
-convention, such as the stored trial-factor direction.
+## Access factors
 
-`reconstructed_tensor`, `reconstructed_latent_tensor`, and `latent_trajectories`
-accept keyword-only `normalized=False`. Set it to `True` to replace global `w`
-with ones in the reconstruction; the formula then omits `w[c]`. This does not
-modify stored weights or normalize `A`, `H`, `S`, `V`, `U`, or the output norm.
-Dtype and device are preserved, and gradients reach the remaining factors while
-bypassing `w`. The default reproduces the weighted reconstruction.
+```python
+session = factors[0]                    # same as factors.session(0)
+V = factors.V                          # time × components
+U = session.trial_factors               # trials × components
+A = session.neuron_factors              # neurons × components
+Q = session.projection_matrix           # neurons × latent coordinates
+S = session.scaling_matrix              # one gain per component
+H = factors.H                          # latent coordinates × components
+```
 
-Use trial factors to study trial-to-trial component expression. Use predicted trajectories when rank-constrained denoising is part of the analysis. Use projected trajectories when the scientific question requires a linear view of measured population activity or additive neuron/region contributions.
+Factor arrays are PyTorch tensors. Use `value.detach().cpu().numpy()` for NumPy plotting.
 
-## Label-free and condition-aware alignment
+## Choose a representation
 
-Without `trial_labels`, the trial-averaged trajectory orients each session projection. With labels, condition means supply multiple alignment anchors. Labels do not enter the tensor reconstruction term and are not predicted by the model.
+| Method | What it represents | Output shape |
+| --- | --- | --- |
+| `session.reconstructed_tensor()` | Model prediction using fitted A | neurons × time × trials |
+| `session.reconstructed_latent_tensor()` | Model prediction using H and S | latent coordinates × time × trials |
+| `session.latent_trajectories()` | The same latent prediction, trials first | trials × time × latent coordinates |
+| `session.projected_trajectories(Z)` | Measured activity projected with Q | trials × time × latent coordinates |
 
-`trial_mask` uses `True` for alignment-excluded trials. Masked trials remain in the reconstruction and retain rows in `U`; this is useful for fitting a coordinate system on training conditions while evaluating perturbation or error trials afterward.
+A projection retains a linear view of measured activity. A reconstruction restricts activity to the fitted component profiles. Because coupling is soft, projecting the full reconstruction need not equal the latent reconstruction.
 
-## Identifiability
+## Reconstruct selected components
 
-Like other component models, factors are not identified without conventions for permutation, sign and scale. Neuralign applies gauge fixing during optimization, but comparisons across independent fits should still match components before interpreting component numbers. Similar reconstruction error does not guarantee identical factors. Inspect rank, initialization and alignment-weight sensitivity for each new application.
+```python
+one = session.reconstructed_tensor(components=0)
+subset = session.reconstructed_latent_tensor(components=[0, 1])
+trajectories = session.latent_trajectories(components=[0, 1])
+unit_weights = session.reconstructed_latent_tensor(components=0, normalized=True)
+```
 
-## Held-out-session adaptation
+Indices are **zero-based**. `None` uses all components; `[]` returns zeros. Selecting components restricts the contributing terms, retaining all output neurons or latent coordinates. A subset is not a new model fit.
 
-`NeuralignFactors.partial_fit` freezes `w`, `V`, `H` and any condition prototypes, then estimates session-specific factors for new tensors. It returns a copy and records adaptation history in `metadata["adaptations"]`. This API is appropriate for prospective calibration, but its performance must be validated for the target dataset; fitting every session jointly and adapting an unseen session answer different questions.
+The default `normalized=False` includes global weights `w`. Setting it to `True` replaces only `w` with ones; it does not normalise the output or remove session gains. Stored factors are unchanged.
+
+`latent_trajectories` and `projected_trajectories` also accept `layout="tkr"` for time × trials × latent coordinates.
+
+## Compare fits carefully
+
+Components can change order, sign and scale across fits. Match them before comparing component numbers. A shared component does not establish a causal role, and a fitted temporal profile does not estimate arbitrary within-trial changes in that profile.

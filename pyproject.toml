@@ -34,6 +34,10 @@ dependencies = [
     "tqdm>=4.67.1",
 ]
 
+[project.optional-dependencies]
+examples = ["matplotlib>=3.8"]
+docs = ["markdown-it-py>=3.0"]
+
 [project.urls]
 Documentation = "https://mikloskralik.github.io/neuralign/"
 Repository = "https://github.com/MiklosKralik/neuralign"
@@ -44,8 +48,8 @@ requires = ["uv_build >= 0.11.2, <0.12.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.12"]
+dev = ["ruff>=0.12"]
 
 [tool.uv.build-backend]
-source-include = ["CITATION.cff", "docs/**", "examples/**", "tests/**", ".github/**"]
+source-include = ["CITATION.cff", "docs/**", "examples/**", ".github/**"]
 

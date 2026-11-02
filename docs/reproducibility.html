@@ -1,10 +1,19 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Neuralign • Reproducibility</title><link rel="stylesheet" href="./style.css"/></head>
-<body><main class="doc"><a class="back-link" href="./index.html">← Back to home</a>
-<h1>Reproducibility guide</h1>
-<h2>Record the full analysis state</h2><p>Archive repository commits, the lockfile, hardware and software versions, session inclusion tables, preprocessing, trial masks, complete configuration, model seeds, fitted factors, decoder folds and tidy plotted data.</p>
-<h2>Validate the scientific unit</h2><p>Optimization seeds measure fit stability, not biological replication. Use grouped folds for session transfer, preserve negative regression scores, and treat absent regions as unavailable rather than zero activity.</p>
-<h2>Check model sensitivity</h2><p>Inspect reconstruction and alignment losses across nearby ranks, match components between initializations, and compare conclusions with hierarchy-preserving nulls. Clearly separate representation fitting from downstream decoder validation.</p>
-<h2>Persistence</h2><p><code>NeuralignFactors.save</code> records exported factors, configuration and metadata. Load only trusted files because persistence uses PyTorch serialization.</p>
-<p>See <a href="./reproducibility.md">reproducibility.md</a> for the complete checklist.</p>
-</main></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reproducibility · Neuralign</title><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" aria-current=page>Reproducibility</a></nav><main><h1>Reproducibility</h1>
+<h2>Record a fit</h2>
+<p>Set a seed and save the fitted collection:</p>
+<pre><code class="language-python">config = NeuralignConfig(rank=6, seed=42)
+factors = NeuralignModel(sessions, config=config).fit(&quot;cpu&quot;)
+factors.save(&quot;fit.pt&quot;)
+</code></pre>
+<p>Keep the package version or commit, preprocessing settings, session order and trial labels alongside it. Save decoder splits separately. GPU results can vary across hardware even with a fixed seed. Load PyTorch files only from trusted sources.</p>
+<h2>Separate fitting from evaluation</h2>
+<p>Fitting all sessions jointly, then holding sessions out of decoder training, measures decoder transfer within that shared fit. It does not hold sessions out of representation fitting.</p>
+<p>Use <code>partial_fit</code> when adding recordings to a frozen shared representation. Its new session factors still use the supplied activity, so define the evaluation split for the scientific question. A <code>trial_mask</code> excludes trials from alignment, not reconstruction.</p>
+<p>For new datasets, compare several ranks and seeds, inspect reconstruction and alignment losses, and match components before interpreting differences across fits. Repeated fits measure optimisation variability, not biological replication.</p>
+<h2>Manuscript analyses</h2>
+<p>The <a href="https://github.com/MiklosKralik/neural_tensors">companion repository</a> contains the experimental analyses, session lists and figure notebooks. The package's quickstart is independent of those recordings and cached fits.</p>
+</main>
+<footer>Neuralign · research software · version 0.1.0</footer></body></html>

@@ -1,58 +1,93 @@
-# API overview
-
-The stable top-level imports currently exposed by `neuralign` are:
+# API reference
 
 ```python
-from neuralign import (
-    NeuralignConfig,
-    NeuralignFactors,
-    NeuralignModel,
-    TensorFactors,
-)
+from neuralign import NeuralignConfig, NeuralignModel, NeuralignFactors
 ```
 
-## `NeuralignModel`
+## NeuralignConfig
 
-Constructs and fits a joint decomposition from a sequence of session tensors.
-Use `fit(device)` to optimize the model and return exported factors.
+`NeuralignConfig(**settings)` sets fitting options. Common settings are:
 
-`NeuralignModel(tensor_sequence, trial_labels=None, trial_mask=None,
-config=None, **overrides)` accepts one Boolean trial mask per session. `True`
-trials are used by reconstruction but excluded from unsupervised and
-condition-aware alignment. In condition-aware fits they are also excluded from
-the learned condition vocabulary and centroids. At least one unmasked trial is
-required per session.
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `rank` | `4` | Number of components |
+| `max_iter` | `2000` | Maximum optimisation steps |
+| `lr` | `0.01` | Adam learning rate |
+| `patience` | `100` | Early-stopping patience |
+| `tol` | `1e-6` | Early-stopping improvement threshold |
+| `seed` | `None` | Random seed; set explicitly for repeatable runs |
+| `progress` | `True` | Display fitting progress |
+| `lambda_tensor_reconstruction` | `1.0` | Reconstruction-loss weight |
+| `lambda_procrustes` | `1.0` | Soft alignment-loss weight |
+| `non_negative` | `False` | Nonnegative factor constraint |
+| `loss_type` | `"frobenius"` | Reconstruction loss; also `"poisson"` or `"poisson_log"` |
 
-## `NeuralignConfig`
+The simulation uses continuous data and the default Frobenius loss. Count losses require appropriately prepared nonnegative count data; they are not for z-scored observations.
 
-A dataclass containing model rank, optimizer settings, loss weights,
-non-negativity settings, progress behavior, and reproducibility controls.
+## NeuralignModel
 
-## `NeuralignFactors`
+```python
+NeuralignModel(tensor_sequence, trial_labels=None, trial_mask=None,
+               config=None, **overrides)
+model.fit(device="cpu")
+```
 
-Stores the global weights, temporal factor, shared geometry, optional condition
-centroids, configuration, metadata, and all session factors. It supports
-indexing, persistence, and fitting additional sessions against learned global
-factors.
+Construct the model from session tensors, then call `fit` to obtain `NeuralignFactors`. Configuration keywords can also be passed as overrides. Each session uses neurons × time × trials; all sessions share a time axis.
 
-`partial_fit(tensor, trial_labels=None, trial_mask=None, *, device=None,
-config=None, **overrides)` returns a cloned factor collection with one or more
-held-out sessions appended. It optimizes only the new sessions' neuron, trial,
-scaling, and projection factors. `True` mask entries exclude trials from
-alignment while retaining them for reconstruction. Masked labels are not used
-as anchors and are not reported as unknown labels. Shared factors and condition
-prototypes remain frozen; adaptation histories are appended to
-`metadata["adaptations"]`.
+`trial_labels` supplies one sequence of labels per session. Without labels, alignment uses trial means; with labels, it uses condition means.
 
-During supervised `partial_fit`, `lambda_condition_centroid=None` resolves to a
-small default weight of `1e-2`. The regularizer penalizes squared distance
-between each new session's unmasked condition-mean trial factor and the
-corresponding frozen source condition prototype. Pass `0.0` to disable it or a
-positive value to override its strength. Explicitly enabling it requires at
-least one recognized, unmasked trial label. Its history is recorded under the
-`Conditions` loss name.
+`trial_mask` supplies one Boolean array per session. **True excludes a trial from alignment only.** Masked trials still contribute to reconstruction and receive trial factors. A mask therefore does not fully hold trials out of model fitting. Every session needs at least one unmasked trial.
 
-## `TensorFactors`
+## NeuralignFactors
 
-Stores the neuron, trial, projection, and scaling factors for one recording
-session and provides access to that session's reconstructed tensor.
+The fitted collection holds `w`, `V`, `H`, configuration, metadata and session factors.
+
+| Method | Behaviour |
+| --- | --- |
+| `len(factors)` | Number of sessions |
+| `factors.session(i)` or `factors[i]` | Session view with named factor properties |
+| `factors.to(device)` | Move stored tensors to a device |
+| `factors.save(path)` | Save factors, configuration and metadata |
+| `NeuralignFactors.load(path, map_location="cpu")` | Load a saved fit |
+| `factors.partial_fit(...)` | Fit new sessions with shared factors frozen |
+
+```python
+factors.save("fit.pt")
+loaded = NeuralignFactors.load("fit.pt")
+adapted = loaded.partial_fit(new_session, device="cpu", max_iter=500)
+new_view = adapted[-1]
+```
+
+`partial_fit(tensor, trial_labels=None, trial_mask=None, *, device=None, config=None, **overrides)` returns a copy with new sessions appended. It freezes `w`, `V`, `H` and any condition prototypes, and fits only new session factors. A sequence of new sessions is also accepted. All must share the fitted time axis. With labels, recognised conditions anchor alignment; unknown labels are omitted from alignment. The original collection is unchanged.
+
+## Session view
+
+| Property | Shape |
+| --- | --- |
+| `neuron_factors` | neurons × components |
+| `trial_factors` | trials × components |
+| `projection_matrix` | neurons × latent coordinates |
+| `scaling_matrix` | components |
+| `weight_matrix` | components; shared w |
+| `temporal_factors` | time × components; shared V |
+| `mixing_matrix` | latent coordinates × components; shared H |
+
+```python
+session.reconstructed_tensor(components=None, *, normalized=False)
+session.reconstructed_latent_tensor(components=None, *, normalized=False)
+session.latent_trajectories(layout="ktr", *, components=None, normalized=False)
+session.projected_trajectories(Z, layout="ktr")
+```
+
+The first three methods accept one integer or a one-dimensional sequence of distinct component indices. Negative, duplicate, Boolean, noninteger and out-of-range indices are rejected. Outputs preserve device, dtype and gradients. `normalized=True` uses unit global weights without changing stored factors. See [Model and outputs](model-and-outputs.html) for shapes and interpretation.
+
+`predicted_neuron_factors()` returns `Q @ H @ diag(S)`; `scaled_mixing_matrix()` returns `H @ diag(S)`. `TensorFactors` is the lower-level storage class for a session's `A`, `U`, `Q` and `S`; use the session view for routine analysis.
+
+## Simulation helper
+
+```python
+from neuralign.simulation import simulate_sessions
+sessions, truth = simulate_sessions(n_sessions=4, n_time=64, noise_std=0.15, seed=42)
+```
+
+Generates rank-two recordings with different neuron/trial counts. `noise_std` is relative to each clean signal's standard deviation. `truth` stores shared temporal factors and per-session generating factors. The helper uses NumPy and PyTorch only.

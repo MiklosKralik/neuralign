@@ -1,26 +1,67 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Neuralign • Model and outputs</title><link rel="stylesheet" href="./style.css"/></head>
-<body><main class="doc"><a class="back-link" href="./index.html">← Back to home</a>
-<h1>Model and outputs</h1>
-<p>Neuralign combines a CP tensor reconstruction with a soft PARAFAC2-inspired alignment. Shared temporal factors establish component identity; session-specific neuron and trial factors retain the map to recorded cells and individual trials.</p>
-<h2>Representations</h2><ul>
-<li><code>factors.V</code>: shared temporal factors, <code>(time, rank)</code>.</li>
-<li><code>factors[i].trial_factors</code>: trial expression, <code>(trials, rank)</code>.</li>
-<li><code>factors[i].neuron_factors</code>: neuron loadings, <code>(neurons, rank)</code>.</li>
-<li><code>latent_trajectories()</code>: rank-constrained predictions, <code>(trials, time, rank)</code>.</li>
-<li><code>projected_trajectories(Z)</code>: measured activity projected with the session matrix <code>Q</code>.</li>
-<li><code>reconstructed_tensor()</code>: fitted activity in the original tensor layout.</li>
-<li><code>reconstructed_latent_tensor()</code>: aligned prediction in <code>(latent coordinates, time, trials)</code> layout using <code>w, H, S, V, U</code>.</li>
-</ul>
-<h2>Selected components</h2>
-<pre><code>session.reconstructed_tensor(components=2)
-session.reconstructed_tensor(components=[0, 2])
-session.reconstructed_latent_tensor(components=[0, 2])
-session.latent_trajectories(components=[0, 2])</code></pre>
-<p>All three methods also accept <code>normalized=False</code>. Set <code>normalized=True</code> to use unit global weights instead of w, without changing stored factors. This retains session gains S and every other factor; it does not impose a unit output norm. Gradients bypass w in this mode.</p>
-<p>Indices are zero-based and distinct. Omit <code>components</code> for all components; an empty sequence returns zeros. Selecting n components gives a rank-at-most-n contribution, retaining all output neurons or latent coordinates and preserving dtype, device, and gradients. Selection restricts columns of H, not latent coordinate rows.</p>
-<p>Multiplying the latent tensor by orthonormal Q preserves its Frobenius norm, but equals the fitted full reconstruction only when A = Q H diag(S). With soft coupling the two reconstructions measure different quantities. See the source document for formulas and validation guidance.</p>
-<h2>Interpretation</h2><p>Use trial factors for trial-to-trial component expression, predicted trajectories for rank-constrained denoising, and projected trajectories when linear neuron or region contributions matter. Components remain subject to permutation, sign and scale conventions; match components before comparing independent fits.</p>
-<h2>Held-out sessions</h2><p><code>partial_fit</code> freezes global weights, temporal factors, mixing geometry and condition prototypes while estimating the factors of new sessions. Joint-fit decoder transfer and prospective held-out-session adaptation are distinct evaluations.</p>
-<p>The complete mathematical description and validation guidance are in the source document <a href="./model-and-outputs.md">model-and-outputs.md</a>.</p>
-</main></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outputs · Neuralign</title><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" aria-current=page>Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Reproducibility</a></nav><main><h1>Model and outputs</h1>
+<p>Each session is reconstructed as a sum of components:</p>
+<pre><code class="language-text">Z_hat[n, neuron, time, trial]
+    = sum(w[c] * A[n][neuron,c] * V[time,c] * U[n][trial,c])
+</code></pre>
+<p><code>w</code> and the temporal factors <code>V</code> are shared. Each session has neuron factors <code>A</code>, trial factors <code>U</code>, an orthonormal projection <code>Q</code> and gains <code>S</code>. The shared mixing matrix <code>H</code> links component directions across sessions through a soft constraint:</p>
+<pre><code class="language-text">A[n] ≈ Q[n] @ H @ diag(S[n])
+</code></pre>
+<h2>Access factors</h2>
+<pre><code class="language-python">session = factors[0]                    # same as factors.session(0)
+V = factors.V                          # time × components
+U = session.trial_factors               # trials × components
+A = session.neuron_factors              # neurons × components
+Q = session.projection_matrix           # neurons × latent coordinates
+S = session.scaling_matrix              # one gain per component
+H = factors.H                          # latent coordinates × components
+</code></pre>
+<p>Factor arrays are PyTorch tensors. Use <code>value.detach().cpu().numpy()</code> for NumPy plotting.</p>
+<h2>Choose a representation</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What it represents</th>
+<th>Output shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session.reconstructed_tensor()</code></td>
+<td>Model prediction using fitted A</td>
+<td>neurons × time × trials</td>
+</tr>
+<tr>
+<td><code>session.reconstructed_latent_tensor()</code></td>
+<td>Model prediction using H and S</td>
+<td>latent coordinates × time × trials</td>
+</tr>
+<tr>
+<td><code>session.latent_trajectories()</code></td>
+<td>The same latent prediction, trials first</td>
+<td>trials × time × latent coordinates</td>
+</tr>
+<tr>
+<td><code>session.projected_trajectories(Z)</code></td>
+<td>Measured activity projected with Q</td>
+<td>trials × time × latent coordinates</td>
+</tr>
+</tbody>
+</table>
+<p>A projection retains a linear view of measured activity. A reconstruction restricts activity to the fitted component profiles. Because coupling is soft, projecting the full reconstruction need not equal the latent reconstruction.</p>
+<h2>Reconstruct selected components</h2>
+<pre><code class="language-python">one = session.reconstructed_tensor(components=0)
+subset = session.reconstructed_latent_tensor(components=[0, 1])
+trajectories = session.latent_trajectories(components=[0, 1])
+unit_weights = session.reconstructed_latent_tensor(components=0, normalized=True)
+</code></pre>
+<p>Indices are <strong>zero-based</strong>. <code>None</code> uses all components; <code>[]</code> returns zeros. Selecting components restricts the contributing terms, retaining all output neurons or latent coordinates. A subset is not a new model fit.</p>
+<p>The default <code>normalized=False</code> includes global weights <code>w</code>. Setting it to <code>True</code> replaces only <code>w</code> with ones; it does not normalise the output or remove session gains. Stored factors are unchanged.</p>
+<p><code>latent_trajectories</code> and <code>projected_trajectories</code> also accept <code>layout=&quot;tkr&quot;</code> for time × trials × latent coordinates.</p>
+<h2>Compare fits carefully</h2>
+<p>Components can change order, sign and scale across fits. Match them before comparing component numbers. A shared component does not establish a causal role, and a fitted temporal profile does not estimate arbitrary within-trial changes in that profile.</p>
+</main>
+<footer>Neuralign · research software · version 0.1.0</footer></body></html>

@@ -1,42 +1,25 @@
-# Reproducibility guide
+# Reproducibility
 
-## Deterministic inputs and seeds
+## Record a fit
 
-Set `NeuralignConfig(seed=...)` and record the complete configuration. GPU operations can remain nondeterministic on some hardware, so publication analyses should report the device, PyTorch/CUDA versions and whether deterministic algorithms were enabled.
+Set a seed and save the fitted collection:
 
-Run several initialization seeds. Seeds measure optimization stability; they are not substitutes for independent sessions, subjects or simulated datasets.
+```python
+config = NeuralignConfig(rank=6, seed=42)
+factors = NeuralignModel(sessions, config=config).fit("cpu")
+factors.save("fit.pt")
+```
 
-## Data conventions
+Keep the package version or commit, preprocessing settings, session order and trial labels alongside it. Save decoder splits separately. GPU results can vary across hardware even with a fixed seed. Load PyTorch files only from trusted sources.
 
-- Every session must use `(neurons, time, trials)` axis order.
-- Sessions may have different neuron and trial counts, but must share the time axis.
-- Normalize using statistics fit only on the intended training data.
-- Preserve the session identity of every trial when cross-validating downstream analyses.
-- Use grouped folds when testing transfer to held-out sessions.
-- Save trial masks and fold assignments alongside fitted factors.
+## Separate fitting from evaluation
 
-## What to archive
+Fitting all sessions jointly, then holding sessions out of decoder training, measures decoder transfer within that shared fit. It does not hold sessions out of representation fitting.
 
-For a reproducible analysis, save:
+Use `partial_fit` when adding recordings to a frozen shared representation. Its new session factors still use the supplied activity, so define the evaluation split for the scientific question. A `trial_mask` excludes trials from alignment, not reconstruction.
 
-1. package and analysis-repository commit hashes;
-2. the lockfile and Python/PyTorch/CUDA versions;
-3. session inclusion and exclusion tables;
-4. preprocessing parameters and trial masks;
-5. the complete `NeuralignConfig` and every model seed;
-6. fitted factors or a documented script that regenerates them;
-7. downstream fold assignments and tidy plotted data;
-8. vector figures generated from scripts without notebook-only state.
+For new datasets, compare several ranks and seeds, inspect reconstruction and alignment losses, and match components before interpreting differences across fits. Repeated fits measure optimisation variability, not biological replication.
 
-`NeuralignFactors.save` and `NeuralignFactors.load` persist exported factors, configuration and metadata. Only load files from trusted sources because persistence uses PyTorch serialization.
+## Manuscript analyses
 
-## Recommended validation
-
-- Plot reconstruction and alignment losses across nearby ranks.
-- Match components before comparing independent initializations.
-- Compare observed results with label-preserving nulls appropriate to the experimental hierarchy.
-- Separate representation fitting from downstream decoder validation in the methods and figures.
-- Report unclipped regression scores, including negative values.
-- Treat missing brain regions as unavailable rather than as zero activity.
-
-The paper repository contains `examples/publication/make_supplementary_materials.py`, which converts cached result tables into the supplementary figures, LaTeX tables and tidy CSV source data used in the manuscript.
+The [companion repository](https://github.com/MiklosKralik/neural_tensors) contains the experimental analyses, session lists and figure notebooks. The package's quickstart is independent of those recordings and cached fits.

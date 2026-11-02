@@ -1,44 +1,26 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Neuralign</title>
-    <meta
-      name="description"
-      content="Neuralign: tensor decomposition methods for aligning neural representations across recording sessions."
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <header class="hero">
-      <img src="./assets/neuralign-mark.svg" alt="Neuralign logo" class="logo" />
-      <h1>Neuralign</h1>
-      <p class="tagline">
-        Tensor decomposition methods for aligning neural representations across
-        recording sessions.
-      </p>
-      <a class="button" href="https://github.com/MiklosKralik/neuralign">View on GitHub</a>
-    </header>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuralign · Neuralign</title><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Reproducibility</a></nav><main><h1>Neuralign</h1>
+<p>Align neural recordings. Keep their neurons, timing and individual trials.</p>
+<p>Neuralign fits recordings together using shared temporal components and session-specific neuron and trial factors. Sessions can have different neurons and trial counts; they must share the same time axis.</p>
+<h2>Start with a small example</h2>
+<pre><code class="language-python">from neuralign import NeuralignConfig, NeuralignModel
+from neuralign.simulation import simulate_sessions
 
-    <main class="content">
-      <section>
-        <h2>Documentation</h2>
-        <p>Start here for installation, data format expectations, and API concepts.</p>
-        <ul>
-          <li><a href="./getting-started.html">Getting Started</a></li>
-          <li><a href="./model-and-outputs.html">Model and Outputs</a></li>
-          <li><a href="./api.html">API Overview</a></li>
-          <li><a href="./reproducibility.html">Reproducibility</a></li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Project status</h2>
-        <p>
-          Neuralign is tested research software accompanying a manuscript. The API may evolve before a stable 1.0 release; cite the archived release used in an analysis.
-        </p>
-      </section>
-    </main>
-  </body>
-</html>
+sessions, truth = simulate_sessions(seed=42)
+config = NeuralignConfig(rank=2, max_iter=500, seed=42, progress=False)
+factors = NeuralignModel(sessions, config=config).fit(&quot;cpu&quot;)
+</code></pre>
+<p><a href="getting-started.html">Run the example and plot the results</a>. It generates its own data and needs no manuscript caches.</p>
+<p><img src="assets/quickstart.png" alt="Generating factors, fitted factors and reconstructions"></p>
+<h2>Find what you need</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a>: installation, input format and a complete example.</li>
+<li><a href="model-and-outputs.html">Model and outputs</a>: factors, projections and reconstructions.</li>
+<li><a href="api.html">API reference</a>: commonly used classes, methods and settings.</li>
+<li><a href="reproducibility.html">Reproducibility</a>: save fits and separate fitting from evaluation.</li>
+</ul>
+<p>Neuralign is research software. The current package version is 0.1.0; record the version or commit used in your analysis.</p>
+</main>
+<footer>Neuralign · research software · version 0.1.0</footer></body></html>

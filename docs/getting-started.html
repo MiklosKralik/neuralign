@@ -1,115 +1,136 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Neuralign • Getting Started</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main class="doc">
-      <a class="back-link" href="./index.html">← Back to home</a>
-      <h1>Getting started</h1>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start here · Neuralign</title><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" aria-current=page>Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Reproducibility</a></nav><main><h1>Getting started</h1>
+<h2>Install</h2>
+<pre><code class="language-bash">pip install &quot;neuralign[examples] @ git+https://github.com/MiklosKralik/neuralign.git&quot;
+</code></pre>
+<p>Python 3.10 or later is required. The <code>examples</code> extra installs Matplotlib for plotting; the model itself requires NumPy and PyTorch. For a local checkout:</p>
+<pre><code class="language-bash">uv sync --extra examples
+uv run python examples/quickstart.py
+</code></pre>
+<p>The example saves <code>examples/quickstart.png</code> and displays the figure. Use <code>MPLBACKEND=Agg</code> when running without a display.</p>
+<h2>Prepare your recordings</h2>
+<p>Provide a list of floating-point arrays or tensors, each shaped <strong>neurons × time × trials</strong>. Neuron and trial counts may differ between sessions. Time bins must match, and the rank cannot exceed any session's neuron count. Choose preprocessing for your data; fit its statistics on training data when evaluating held-out observations.</p>
+<h2>Fit and inspect</h2>
+<pre><code class="language-python">from neuralign import NeuralignConfig, NeuralignModel
+from neuralign.simulation import simulate_sessions
 
-      <h2>Input data</h2>
-      <p>
-        Pass <code>NeuralignModel</code> a sequence containing one NumPy array,
-        PyTorch tensor, or array-like object per session. Each input must have
-        shape <code>(neurons, time, trials)</code>. Sessions may contain different
-        numbers of neurons and trials, but their time dimension must match.
-      </p>
+sessions, truth = simulate_sessions(seed=42)
+factors = NeuralignModel(
+    sessions,
+    config=NeuralignConfig(rank=2, max_iter=500, seed=42, progress=False),
+).fit(&quot;cpu&quot;)
 
-      <p>
-        Optional trial labels can be supplied alongside the tensors. Provide one
-        label sequence per session, with one label for each trial:
-      </p>
+session = factors.session(0)
+print(factors.V.shape)                   # time, components
+print(session.neuron_factors.shape)      # neurons, components
+print(session.trial_factors.shape)       # trials, components
+reconstructed = session.reconstructed_tensor()
+</code></pre>
+<p>Use <code>fit(&quot;cuda&quot;)</code> with a compatible CUDA-enabled PyTorch installation.</p>
+<h2>Complete plotting example</h2>
+<p><a href="assets/quickstart.py">Download quickstart.py</a>, or run it from the package's <code>examples</code> folder. Its small simulator uses the sigmoid/transient profiles and changing trial factors from the manuscript's identifiability example, with light Gaussian noise. It is a teaching example, not the full Poisson benchmark. Component order, sign and scale can differ between the generating and fitted factors.</p>
+<pre><code class="language-python">&quot;&quot;&quot;Simulate, fit and plot a rank-two Neuralign model; no external data needed.
 
-      <pre><code>from neuralign import NeuralignConfig, NeuralignModel
+Run: python examples/quickstart.py
+The figure is saved next to this script as quickstart.png.
+&quot;&quot;&quot;
 
-model = NeuralignModel(
-    session_tensors,
-    trial_labels=session_labels,
-    config=NeuralignConfig(rank=6, seed=42),
-)
-factors = model.fit("cpu")</code></pre>
+from pathlib import Path
 
-      <p>
-        Trials can be retained for reconstruction but excluded from alignment
-        with a Boolean <code>trial_mask</code>. Provide one mask per session and
-        one value per trial; <code>True</code> means alignment-excluded and
-        <code>False</code> means alignment-included:
-      </p>
+import matplotlib.pyplot as plt
+import numpy as np
 
-      <pre><code>model = NeuralignModel(
-    session_tensors,
-    trial_labels=session_labels,
-    trial_mask=session_masks,
-    config=NeuralignConfig(rank=6, seed=42),
-)</code></pre>
+from neuralign import NeuralignConfig, NeuralignModel
+from neuralign.simulation import simulate_sessions
 
-      <p>
-        In unsupervised mode, masked trials are excluded from the neural and
-        trial-factor averages used to align sessions. In condition-aware mode,
-        they are also excluded from the condition vocabulary, condition
-        centroids, and condition means. They remain in reconstruction and keep
-        their own trial factors. Every session needs an unmasked trial.
-      </p>
 
-      <p>
-        Pass <code>"cuda"</code> to <code>fit</code> when a compatible PyTorch
-        CUDA installation is available.
-      </p>
+def main():
+    sessions, truth = simulate_sessions(seed=42)
+    config = NeuralignConfig(
+        rank=2, max_iter=500, patience=100, seed=42, progress=False
+    )
+    factors = NeuralignModel(sessions, config=config).fit(&quot;cpu&quot;)
+    view = factors.session(0)
+    reconstructed = view.reconstructed_tensor().detach().numpy()
 
-      <h2>Configuration</h2>
-      <p>
-        <code>NeuralignConfig</code> controls rank, initialization, optimization,
-        loss selection, regularization, non-negativity, progress display, and
-        random seeding. Keyword overrides can also be passed to
-        <code>NeuralignModel</code>; invalid configuration names raise
-        <code>ValueError</code>.
-      </p>
+    fig, axes = plt.subplots(2, 3, figsize=(10, 5.8), layout=&quot;constrained&quot;)
+    time = truth[&quot;time&quot;]
+    for column, (V, title) in enumerate(
+        (
+            (truth[&quot;V&quot;], &quot;Generating temporal factors&quot;),
+            (factors.V.detach().numpy(), &quot;Fitted temporal factors&quot;),
+        )
+    ):
+        axes[0, column].plot(time, V)
+        axes[0, column].set(title=title, xlabel=&quot;Time (s)&quot;, ylabel=&quot;Factor value&quot;)
+    axes[0, 2].plot(view.trial_factors.detach().numpy())
+    axes[0, 2].set(
+        title=&quot;Fitted trial factors · session 1&quot;,
+        xlabel=&quot;Trial index&quot;,
+        ylabel=&quot;Factor value&quot;,
+    )
 
-      <p>
-        The default loss uses Frobenius reconstruction error. Count-valued data
-        can use the supported Poisson modes through <code>loss_type</code>,
-        optionally together with <code>non_negative=True</code>.
-      </p>
+    measured = sessions[0].numpy()[:, :, 0]
+    predicted = reconstructed[:, :, 0]
+    limit = np.quantile(np.abs(np.stack([measured, predicted])), 0.99)
+    for ax, values, title in zip(
+        axes[1, :2],
+        (measured, predicted),
+        (&quot;Input · first trial&quot;, &quot;Reconstruction · first trial&quot;),
+    ):
+        image = ax.imshow(
+            values,
+            aspect=&quot;auto&quot;,
+            cmap=&quot;RdBu_r&quot;,
+            vmin=-limit,
+            vmax=limit,
+            extent=(time[0], time[-1] + 0.05, len(values), 0),
+        )
+        ax.set(title=title, xlabel=&quot;Time (s)&quot;, ylabel=&quot;Neuron index&quot;)
+    fig.colorbar(
+        image,
+        ax=axes[1, :2],
+        label=&quot;Model units&quot;,
+        orientation=&quot;horizontal&quot;,
+        shrink=0.7,
+        pad=0.15,
+    )
+    errors = [
+        float(
+            np.linalg.norm(Z.numpy() - v.reconstructed_tensor().detach().numpy())
+            / np.linalg.norm(Z.numpy())
+        )
+        for Z, v in zip(sessions, factors)
+    ]
+    axes[1, 2].bar(np.arange(1, len(errors) + 1), errors, color=&quot;#536B82&quot;)
+    axes[1, 2].set(
+        title=&quot;Reconstruction error&quot;,
+        xlabel=&quot;Session&quot;,
+        ylabel=&quot;Relative Frobenius error&quot;,
+        xticks=np.arange(1, len(errors) + 1),
+    )
+    for ax in axes.flat:
+        ax.spines[[&quot;top&quot;, &quot;right&quot;]].set_visible(False)
+    # Component order, sign and scale can differ from the generating factors.
+    destination = Path(__file__).with_suffix(&quot;.png&quot;)
+    fig.savefig(destination, dpi=160)
+    print(f&quot;Saved {destination}; mean relative error: {np.mean(errors):.3f}&quot;)
+    plt.show()
+    return factors
 
-      <h2>Results</h2>
-      <p>
-        <code>fit</code> returns a <code>NeuralignFactors</code> object containing
-        shared factors and one <code>TensorFactors</code> object per input session.
-        Index the result to access a session, or use its save and adaptation
-        methods to persist a fit or add held-out sessions.
-      </p>
 
-      <h2>Adapting to held-out sessions</h2>
-      <p>
-        Use <code>partial_fit</code> on fitted factors to estimate only the
-        session-specific factors for new recordings. Shared factors and optional
-        condition prototypes remain frozen, and the original fit is not modified.
-      </p>
+if __name__ == &quot;__main__&quot;:
+    main()
 
-      <pre><code>adapted = factors.partial_fit(
-	    held_out_tensor,
-	    trial_labels=held_out_labels,
-	    trial_mask=held_out_mask,
-	    device="cpu",
-    max_iter=500,
-)
-
-held_out_factors = adapted[-1]
-adaptation_history = adapted.metadata["adaptations"][-1]</code></pre>
-
-      <p>
-        Multiple tensors can be adapted together by supplying one label sequence
-        per tensor. Known labels use the fitted condition prototypes. Unknown
-	        labels produce a warning and are excluded; sessions without recognized
-	        labels use trial-averaged alignment. Masked trial labels are not used as
-	        anchors and are not reported as unknown. Masked trials are still
-	        reconstructed and receive trial factors. New tensors must share the
-	        fitted time axis, and every session needs an unmasked trial.
-      </p>
-    </main>
-  </body>
-</html>
+</code></pre>
+<h2>Optional condition labels</h2>
+<pre><code class="language-python">factors = NeuralignModel(
+    sessions, trial_labels=labels_by_session,
+    config=NeuralignConfig(rank=2, seed=42),
+).fit(&quot;cpu&quot;)
+</code></pre>
+<p>Supply one label per trial in each session. Labels orient alignment using condition means; they are not reconstruction targets. See the <a href="api.html">API reference</a> for masks and adding new sessions.</p>
+</main>
+<footer>Neuralign · research software · version 0.1.0</footer></body></html>

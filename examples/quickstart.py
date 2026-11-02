@@ -1,72 +1,91 @@
-"""Minimal, self-contained Neuralign example.
+"""Simulate, fit and plot a rank-two Neuralign model; no external data needed.
 
-The example generates three sessions with shared temporal factors but different
-neurons and trials, fits a rank-two model, inspects the exported factors, and
-adapts the learned global representation to one new session.
+Run: python examples/quickstart.py
+The figure is saved next to this script as quickstart.png.
 """
 
-from __future__ import annotations
+from pathlib import Path
 
-import torch
+import matplotlib.pyplot as plt
+import numpy as np
 
 from neuralign import NeuralignConfig, NeuralignModel
+from neuralign.simulation import simulate_sessions
 
 
-def simulate_session(
-    generator: torch.Generator,
-    temporal_factors: torch.Tensor,
-    n_neurons: int,
-    n_trials: int,
-) -> torch.Tensor:
-    rank = temporal_factors.shape[1]
-    neuron_factors = torch.randn(n_neurons, rank, generator=generator)
-    trial_factors = torch.randn(n_trials, rank, generator=generator)
-    signal = torch.einsum("nr,tr,kr->ntk", neuron_factors, temporal_factors, trial_factors)
-    noise = 0.05 * torch.randn(signal.shape, generator=generator)
-    return signal + noise
-
-
-def main() -> None:
-    generator = torch.Generator().manual_seed(7)
-    time = torch.linspace(0, 1, 40)
-    temporal_factors = torch.stack(
-        (torch.sin(2 * torch.pi * time), torch.cos(torch.pi * time)), dim=1
-    )
-
-    sessions = [
-        simulate_session(generator, temporal_factors, n_neurons=14, n_trials=24),
-        simulate_session(generator, temporal_factors, n_neurons=18, n_trials=29),
-        simulate_session(generator, temporal_factors, n_neurons=16, n_trials=21),
-    ]
+def main():
+    sessions, truth = simulate_sessions(seed=42)
     config = NeuralignConfig(
-        rank=2,
-        max_iter=300,
-        patience=80,
-        progress=False,
-        seed=11,
+        rank=2, max_iter=500, patience=100, seed=42, progress=False
     )
     factors = NeuralignModel(sessions, config=config).fit("cpu")
+    view = factors.session(0)
+    reconstructed = view.reconstructed_tensor().detach().numpy()
 
-    print("shared temporal factors:", tuple(factors.V.shape))
-    for index, (session, view) in enumerate(zip(sessions, factors)):
-        relative_error = torch.linalg.norm(session - view.reconstructed_tensor()) / torch.linalg.norm(session)
-        print(
-            f"session {index}: neurons={tuple(view.neuron_factors.shape)}, "
-            f"trials={tuple(view.trial_factors.shape)}, "
-            f"latent={tuple(view.latent_trajectories().shape)}, "
-            f"relative reconstruction error={relative_error:.3f}"
+    fig, axes = plt.subplots(2, 3, figsize=(10, 5.8), layout="constrained")
+    time = truth["time"]
+    for column, (V, title) in enumerate(
+        (
+            (truth["V"], "Generating temporal factors"),
+            (factors.V.detach().numpy(), "Fitted temporal factors"),
         )
-
-    held_out = simulate_session(generator, temporal_factors, n_neurons=12, n_trials=19)
-    adapted = factors.partial_fit(
-        held_out,
-        device="cpu",
-        max_iter=150,
-        patience=50,
-        progress=False,
-        seed=19,
+    ):
+        axes[0, column].plot(time, V)
+        axes[0, column].set(title=title, xlabel="Time (s)", ylabel="Factor value")
+    axes[0, 2].plot(view.trial_factors.detach().numpy())
+    axes[0, 2].set(
+        title="Fitted trial factors · session 1",
+        xlabel="Trial index",
+        ylabel="Factor value",
     )
-    print("sessions after held-out adaptation:", len(adapted))
+
+    measured = sessions[0].numpy()[:, :, 0]
+    predicted = reconstructed[:, :, 0]
+    limit = np.quantile(np.abs(np.stack([measured, predicted])), 0.99)
+    for ax, values, title in zip(
+        axes[1, :2],
+        (measured, predicted),
+        ("Input · first trial", "Reconstruction · first trial"),
+    ):
+        image = ax.imshow(
+            values,
+            aspect="auto",
+            cmap="RdBu_r",
+            vmin=-limit,
+            vmax=limit,
+            extent=(time[0], time[-1] + 0.05, len(values), 0),
+        )
+        ax.set(title=title, xlabel="Time (s)", ylabel="Neuron index")
+    fig.colorbar(
+        image,
+        ax=axes[1, :2],
+        label="Model units",
+        orientation="horizontal",
+        shrink=0.7,
+        pad=0.15,
+    )
+    errors = [
+        float(
+            np.linalg.norm(Z.numpy() - v.reconstructed_tensor().detach().numpy())
+            / np.linalg.norm(Z.numpy())
+        )
+        for Z, v in zip(sessions, factors)
+    ]
+    axes[1, 2].bar(np.arange(1, len(errors) + 1), errors, color="#536B82")
+    axes[1, 2].set(
+        title="Reconstruction error",
+        xlabel="Session",
+        ylabel="Relative Frobenius error",
+        xticks=np.arange(1, len(errors) + 1),
+    )
+    for ax in axes.flat:
+        ax.spines[["top", "right"]].set_visible(False)
+    # Component order, sign and scale can differ from the generating factors.
+    destination = Path(__file__).with_suffix(".png")
+    fig.savefig(destination, dpi=160)
+    print(f"Saved {destination}; mean relative error: {np.mean(errors):.3f}")
+    plt.show()
+    return factors
 
 
 if __name__ == "__main__":

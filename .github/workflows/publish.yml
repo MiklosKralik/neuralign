@@ -1,0 +1,91 @@
+name: Publish package to PyPI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A rerun or a second main update must not race an upload already in progress.
+concurrency:
+  group: pypi-publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and verify distributions
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      publish: ${{ steps.release.outputs.publish }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Build wheel and source distribution
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          python -m twine check --strict dist/*
+
+      - name: Install CPU PyTorch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.9.1"
+
+      - name: Test installed wheel
+        run: |
+          python -m pip install dist/*.whl
+          python -m pip check
+          python -I -m unittest discover -s tests -v
+
+      - name: Test installed source distribution
+        run: |
+          python -m pip uninstall --yes neuralign
+          python -m pip install dist/*.tar.gz
+          python -m pip check
+          python -I -m unittest discover -s tests -v
+
+      - name: Check whether this version needs publishing
+        id: release
+        run: python .github/scripts/check_pypi_release.py
+
+      - name: Upload verified distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish new version
+    needs: build
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/neuralign/${{ needs.build.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download verified distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: python-distributions
+          path: dist/
+
+      # No checkout or package execution in the job with publishing permission.
+      # Configure this workflow and the pypi environment as a Trusted Publisher.
+      - name: Publish distributions with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1

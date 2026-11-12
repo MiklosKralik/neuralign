@@ -40,6 +40,6 @@ For your own recordings, pass a list of arrays in **neurons × time × trials** 
 
 ## Paper
 
-Companion code for *Identifying aligned tensor decompositions across heterogeneous neural datasets*.
+Neuralign is described in *Identifying aligned tensor decompositions across heterogeneous neural datasets*.
 
-Please cite the software and manuscript when using Neuralign in research. [Citation](https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff) · [Paper analyses](https://github.com/MiklosKralik/neural_tensors) · [MIT License](https://github.com/MiklosKralik/neuralign/blob/main/LICENSE).
+Please cite the software and manuscript when using Neuralign in research. [Citation](https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff) · [MIT License](https://github.com/MiklosKralik/neuralign/blob/main/LICENSE).

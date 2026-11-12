@@ -1,4 +1,4 @@
-"""Small rank-two simulation inspired by the manuscript's recovery example."""
+"""Generate small rank-two recordings for the quickstart."""
 
 import numpy as np
 import torch
@@ -12,7 +12,6 @@ def simulate_sessions(n_sessions=4, *, n_time=64, noise_std=0.15, seed=42):
     ``(neurons, time, trials)`` order, ready for the default Frobenius loss.
     ``noise_std`` is relative to each signal's standard deviation.
     ``truth`` contains time in seconds, V, and per-session A, U and S.
-    This is a teaching example, not the full manuscript benchmark.
     """
     if (
         not isinstance(n_sessions, int)

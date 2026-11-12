@@ -15,5 +15,3 @@ Keep the package version or commit, preprocessing settings, session order, label
 Choose rank by comparing several fits and inspect reconstruction quality. Match components before comparing fits: their order, sign and scale can vary.
 
 Fitting all sessions jointly and holding some out of decoder training measures decoder transfer within the fitted cohort. For a frozen shared representation, use `partial_fit` to add sessions; their factors still use the supplied activity. A `trial_mask` excludes trials from alignment, not reconstruction.
-
-The [analysis repository](https://github.com/MiklosKralik/neural_tensors) contains the manuscript pipelines. Their recordings and fitted caches are supplied separately.

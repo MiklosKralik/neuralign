@@ -1,25 +1,19 @@
-# Reproducibility
+# Saving and evaluating fits
 
-## Record a fit
-
-Set a seed and save the fitted collection:
+Set a seed and save the fitted factors:
 
 ```python
-config = NeuralignConfig(rank=6, seed=42)
-factors = NeuralignModel(sessions, config=config).fit("cpu")
+from neuralign import NeuralignFactors, NeuralignModel
+
+factors = NeuralignModel(sessions, rank=4, seed=42).fit("cpu")
 factors.save("fit.pt")
+loaded = NeuralignFactors.load("fit.pt")
 ```
 
-Keep the package version or commit, preprocessing settings, session order and trial labels alongside it. Save decoder splits separately. GPU results can vary across hardware even with a fixed seed. Load PyTorch files only from trusted sources.
+Keep the package version or commit, preprocessing settings, session order, labels and evaluation splits alongside the fit. GPU results can vary across hardware. Load saved fits only from trusted sources.
 
-## Separate fitting from evaluation
+Choose rank by comparing several fits and inspect reconstruction quality. Match components before comparing fits: their order, sign and scale can vary.
 
-Fitting all sessions jointly, then holding sessions out of decoder training, measures decoder transfer within that shared fit. It does not hold sessions out of representation fitting.
+Fitting all sessions jointly and holding some out of decoder training measures decoder transfer within the fitted cohort. For a frozen shared representation, use `partial_fit` to add sessions; their factors still use the supplied activity. A `trial_mask` excludes trials from alignment, not reconstruction.
 
-Use `partial_fit` when adding recordings to a frozen shared representation. Its new session factors still use the supplied activity, so define the evaluation split for the scientific question. A `trial_mask` excludes trials from alignment, not reconstruction.
-
-For new datasets, compare several ranks and seeds, inspect reconstruction and alignment losses, and match components before interpreting differences across fits. Repeated fits measure optimisation variability, not biological replication.
-
-## Manuscript analyses
-
-The [companion repository](https://github.com/MiklosKralik/neural_tensors) contains the experimental analyses, session lists and figure notebooks. The package's quickstart is independent of those recordings and cached fits.
+The [analysis repository](https://github.com/MiklosKralik/neural_tensors) contains the manuscript pipelines. Their recordings and fitted caches are supplied separately.

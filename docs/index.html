@@ -1,26 +1,31 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neuralign · Neuralign</title><link rel="stylesheet" href="style.css"></head>
-<body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Reproducibility</a></nav><main><h1>Neuralign</h1>
-<p>Align neural recordings. Keep their neurons, timing and individual trials.</p>
-<p>Neuralign fits recordings together using shared temporal components and session-specific neuron and trial factors. Sessions can have different neurons and trial counts; they must share the same time axis.</p>
-<h2>Start with a small example</h2>
-<pre><code class="language-python">from neuralign import NeuralignConfig, NeuralignModel
+<title>Neuralign · Neuralign</title><link rel="icon" href="assets/neuralign-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Save a fit</a></nav><main><h1><img src="assets/neuralign-mark.png" width="36" alt="" /> Neuralign</h1>
+<p>Find shared activity patterns across neural recordings, with a factor for each neuron and each trial.</p>
+<p><a href="assets/neuralign-overview.pdf"><img src="assets/neuralign-overview.png" alt="Neuralign model overview"></a></p>
+<h2>Install</h2>
+<p>Python 3.10 or later. From PyPI, after the first release:</p>
+<pre><code class="language-bash">python -m pip install neuralign
+</code></pre>
+<p>Or directly from GitHub:</p>
+<pre><code class="language-bash">python -m pip install git+https://github.com/MiklosKralik/neuralign.git
+</code></pre>
+<h2>Quickstart</h2>
+<p>This example generates its own data:</p>
+<pre><code class="language-python">from neuralign import NeuralignModel
 from neuralign.simulation import simulate_sessions
 
-sessions, truth = simulate_sessions(seed=42)
-config = NeuralignConfig(rank=2, max_iter=500, seed=42, progress=False)
-factors = NeuralignModel(sessions, config=config).fit(&quot;cpu&quot;)
+sessions, _ = simulate_sessions(seed=42)
+factors = NeuralignModel(sessions, rank=2, max_iter=500, seed=42).fit(&quot;cpu&quot;)
+
+time_factors = factors.V                       # time × components
+neuron_factors = factors[0].neuron_factors       # neurons × components
+trial_factors = factors[0].trial_factors         # trials × components
 </code></pre>
-<p><a href="getting-started.html">Run the example and plot the results</a>. It generates its own data and needs no manuscript caches.</p>
-<p><img src="assets/quickstart.png" alt="Generating factors, fitted factors and reconstructions"></p>
-<h2>Find what you need</h2>
-<ul>
-<li><a href="getting-started.html">Getting started</a>: installation, input format and a complete example.</li>
-<li><a href="model-and-outputs.html">Model and outputs</a>: factors, projections and reconstructions.</li>
-<li><a href="api.html">API reference</a>: commonly used classes, methods and settings.</li>
-<li><a href="reproducibility.html">Reproducibility</a>: save fits and separate fitting from evaluation.</li>
-</ul>
-<p>Neuralign is research software. The current package version is 0.1.0; record the version or commit used in your analysis.</p>
-</main>
-<footer>Neuralign · research software · version 0.1.0</footer></body></html>
+<p>For your own recordings, pass a list of arrays in <strong>neurons × time × trials</strong> order. Sessions may have different neuron and trial counts, but must share time bins.</p>
+<p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py">Plotting example</a></p>
+<h2>Paper</h2>
+<p>Companion code for <em>Identifying aligned tensor decompositions across heterogeneous neural datasets</em>.</p>
+<p>Please cite the software and manuscript when using Neuralign in research. <a href="https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff">Citation</a> · <a href="https://github.com/MiklosKralik/neural_tensors">Paper analyses</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/LICENSE">MIT License</a>.</p>
+</main></body></html>

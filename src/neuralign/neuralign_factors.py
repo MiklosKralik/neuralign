@@ -22,19 +22,16 @@ from torch import Tensor
 import neuralign.ops as ops
 from neuralign.configs import NeuralignConfig
 
+
 @dataclass
 class TensorFactors:
-    """
-    Store the hybrid factors of a single 3-way tensor in CP/Parafac format
-    """
+    """Neuron, trial, projection and gain factors for one session."""
     
     A: Tensor = None # individual neuron factors
     U: Tensor = None # individual trial factors
     Q: Tensor = None # individual neural orthonormal projection matrices
     S: Tensor = None # individual component scaling matrices (diagonal)
-    
-    ##### Helper methods #####
-    
+
     def to(self, device, **kwargs):
         """Move all tensors to ``device`` in place and return this object."""
         for name in ("A", "U", "Q", "S"):
@@ -42,13 +39,11 @@ class TensorFactors:
             if tensor is not None:
                 setattr(self, name, tensor.to(device=device, **kwargs))
         return self
-    
+
 
 @dataclass
 class NeuralignFactors:
-    """
-    Store a set of tensor factors for many 3-way tensors from a joint neuralign decomposition
-    """
+    """Shared factors and per-session factors from a joint decomposition."""
     
     # core factors
     w: Tensor = None # global tensor weights (diagonal)
@@ -62,14 +57,12 @@ class NeuralignFactors:
     config: Union[NeuralignConfig, Dict] = None # config object
     metadata: dict = None # optional metadata dictionary (losses, convergence, etc.)
     condition_labels: List[Any] = None # labels corresponding to rows of C
-    
-    ##### Helper methods #####
-    
+
     def __len__(self):
         return len(self.tensor_factors)
     
     def to(self, device, **kwargs):
-        """Move all tensors to  in place and return this object."""
+        """Move all tensors to ``device`` in place and return this collection."""
         for name in ("w", "V", "H", "C"):
             tensor = getattr(self, name)
             if tensor is not None:
@@ -128,25 +121,20 @@ class NeuralignFactors:
         config: Union[NeuralignConfig, Dict] = None,
         **overrides,
     ) -> "NeuralignFactors":
-        """Fit one or more new tensors while keeping learned factors fixed.
+        """Fit new sessions with w, V, H and condition prototypes C frozen.
 
-        ``tensor`` may be one 3-way tensor or a sequence of them. A cloned
-        factor collection is returned with the new sessions appended. For
-        multiple tensors, provide one trial-label and trial-mask sequence per
-        tensor. A ``True`` mask entry excludes that trial from alignment while
-        retaining it for reconstruction. The stored config is inherited by
-        default and can be changed with ``config`` or keyword overrides.
+        ``tensor`` accepts one (neurons, time, trials) tensor or a sequence.
+        Supply labels and masks per session; True mask entries exclude alignment
+        only. The stored config is inherited, with optional overrides.
 
-        The learned global factors ``w``, ``V``, and ``H`` and any condition
-        prototypes ``C`` remain frozen. Known trial labels use the frozen
-        prototypes to align the new session; unknown labels are warned about
-        and ignored. Sessions without recognized labels use trial-averaged
-        alignment. Set ``lambda_condition_centroid`` to a positive value to
-        regularize each recognized, unmasked condition mean in the new trial
-        factors toward its frozen prototype. Recognized supervised adaptation
-        uses a small default weight when this setting is ``None``; pass ``0.0``
-        to disable it. Optimization histories and the effective configuration
-        are stored in ``metadata["adaptations"]`` on the returned copy.
+        Known labels anchor alignment to frozen prototypes; unknown labels are
+        warned about and ignored. Sessions with no recognized labels use trial
+        means. ``lambda_condition_centroid=None`` uses the default supervised
+        penalty toward prototypes; set it to 0.0 to disable, or a positive value
+        to choose its strength. Only recognized, unmasked conditions contribute.
+
+        Returns a copy with new sessions appended. Effective settings and fit
+        histories are stored in ``metadata["adaptations"]``.
         """
         # Local import avoids a module cycle: adapt imports these factor types.
         from neuralign.adapt import partial_fit_factors
@@ -162,9 +150,7 @@ class NeuralignFactors:
         )
         
     def session(self, index: int) -> "SessionFactorView":
-        """
-        Return a read-only view of the factors for a single tensor/session.
-        """
+        """Return a read-only factor view for one session."""
         if index < 0:
             index += len(self) # for negative indexing
         if not (0 <= index < len(self)):
@@ -176,10 +162,7 @@ class NeuralignFactors:
         return self.session(index)
     
     def reorder_factors(self) -> "NeuralignFactors":
-        """
-        Reorder the factors by the magnitude of the global tensor weights w.
-        This is useful for visualization and interpretation.
-        """
+        """Order components by descending global weights w for display."""
         order = torch.argsort(self.w, descending=True)
         self.w = self.w[order]
         self.V = self.V[:, order]
@@ -192,84 +175,56 @@ class NeuralignFactors:
             factors.Q = factors.Q[:, order]
             factors.S = factors.S[order]
         return self
-    
-    
+
+
 @dataclass(frozen=True)
 class SessionFactorView:
-    """
-    Read-only view of the factors for a single tensor/session in a NeuralignFactors object.
-    """
+    """Named access to one session and its shared factors."""
     
     parent: "NeuralignFactors"
     index: int
-    
-    ### fixed session factors ###
-    
+
     @property
     def neuron_factors(self):
-        """
-        Return A_n: neuron factors for this session (neurons, rank)
-        """
+        """Neuron factors A, shaped (neurons, rank)."""
         return self.parent.tensor_factors[self.index].A
     
     @property
     def trial_factors(self):
-        """
-        Return U_n: trial factors for this session (trials, rank)
-        """
+        """Trial factors U, shaped (trials, rank)."""
         return self.parent.tensor_factors[self.index].U
     
     @property
     def projection_matrix(self):
-        """
-        Return Q_n: orthonormal projection matrix for this session (neurons, rank)
-        """
+        """Orthonormal projection Q, shaped (neurons, rank)."""
         return self.parent.tensor_factors[self.index].Q
     
     @property
     def scaling_matrix(self):
-        """
-        Return S_n: component scaling matrix for this session (diagonal) (rank,)
-        """
+        """Session gains S, shaped (rank,)."""
         return self.parent.tensor_factors[self.index].S
-    
-    ##### global factors #####
-    
+
     @property
     def weight_matrix(self):
-        """
-        Return w: global tensor weights (diagonal) (rank,)
-        """
+        """Shared component weights w, shaped (rank,)."""
         return self.parent.w
     
     @property
     def temporal_factors(self):
-        """
-        Return V: global temporal factors (time, rank)
-        """
+        """Shared temporal factors V, shaped (time, rank)."""
         return self.parent.V
     
     @property
     def mixing_matrix(self):
-        """
-        Return H: global mixing matrix (rank, rank)
-        """
+        """Shared mixing matrix H, shaped (rank, rank)."""
         return self.parent.H
-    
-    ##### derived factors #####
-    
+
     def scaled_mixing_matrix(self):
-        """
-        Return H_n = H @ diag(S_n): scaled mixing matrix for this session (rank, rank)
-        """
+        """Return H @ diag(S), shaped (rank, rank)."""
         return ops.scale_mixing(self.mixing_matrix, self.scaling_matrix)
     
     def predicted_neuron_factors(self):
-        """
-        These are the coordinate-aligned neuron factors (Hard alignment constraint)
-        The learned neurons factors have a softer alignment constraint
-        Return A_n_hat = Q_n @ H_n: predicted neuron factors for this session (neurons, rank)
-        """
+        """Return Q @ H @ diag(S), shaped (neurons, rank); soft coupling allows A to differ."""
         return ops.predicted_neuron_factors(self.projection_matrix, self.mixing_matrix, self.scaling_matrix)
     
     def latent_trajectories(self, layout="ktr", *, components=None, normalized=False):
@@ -283,10 +238,9 @@ class SessionFactorView:
         return _apply_layout(out, layout)
     
     def projected_trajectories(self, Z, layout="ktr"):
-        """
-        Return the Q-projected latent trajectories for this session,
-        Z is a neural activity tensor (neurons, time, trials) 
-        i.e. the neural activity tensor projected into the low-dimensional latent space (trials (k), time (t), rank (r))
+        """Project Z (neurons, time, trials) through Q.
+
+        Returns (trials, time, rank), or (time, trials, rank) for layout="tkr".
         """
         out = ops.projected_latent_trajectories(
             self.projection_matrix, Z

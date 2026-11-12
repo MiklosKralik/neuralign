@@ -1,6 +1,4 @@
-"""
-Neuralign decomposition model
-"""
+"""Joint tensor decomposition and session alignment."""
 from typing import Union, Sequence
 
 import numpy as np
@@ -19,11 +17,9 @@ from neuralign.gauges import gauge_fix_model
 
 TensorLike = Union[np.ndarray, torch.Tensor, list]
 
+
 class NeuralignModel(torch.nn.Module):
-    """
-    Performs a joint decomposition of multiple 3-way tensors using a hybrid CP/Parafac2 model.
-    Returns a NeuralignFactors object containing the estimated global and individual tensor factors.
-    """
+    """Fit shared and session-specific factors to neuron × time × trial tensors."""
     
     def __init__(self, tensor_sequence: Sequence[TensorLike],
                  trial_labels: Sequence[Union[np.ndarray, list]] = None,
@@ -31,18 +27,14 @@ class NeuralignModel(torch.nn.Module):
                  config: NeuralignConfig = None,
                  **overrides):
         super().__init__()
-        
-        
-        # setup config
+
         self.cfg = config or NeuralignConfig()
         self.cfg = override_config(self.cfg, overrides)
         
         if self.cfg.seed is None:
             self.cfg.seed = int(np.random.randint(0, 2**32 - 1))
         self.set_seed_prescision(self.cfg.seed)
-        
-        # configure tensor and projection sequence and config
-        # tensors live on the CPU by default, cuda can be used during training if specified
+
         self._tensor_names = []
         self._tensor_slice_names = []
         self._trial_mask_names = []
@@ -72,27 +64,19 @@ class NeuralignModel(torch.nn.Module):
             )
             self._tensor_slice_names.append(slice_name)
 
-        # make tensors and tensor_slices indexable by session
         self._refresh_tensor_views()
-        
-        
-        # initialize trial labels if provided
+
         self.trial_labels = trial_labels
-        self.init_trial_labels() # prepare trial labels and indicies for each tensor if provided
-        self._refresh_label_info_views() # cache directly indexable views of the registered label info buffers
-        
-        # initialize factors
+        self.init_trial_labels()
+        self._refresh_label_info_views()
+
         factors = initialize_neuralign_factors(
             self.tensors,
             self.tensor_slices,
             self.cfg.rank,
             init=self.cfg.init,
         )
-        
-        # Model owns the parameters to be fit
-        # Different losses may toggle which parameters are trainable, but defaults are registered here
-        
-        # usually do not require grad so register as buffers (derived quantities) (register similar to tensors and tensor_slices)
+
         if self.cfg.non_negative:
             self._w = torch.nn.Parameter(factors.w.abs().clone())
         else:
@@ -102,11 +86,9 @@ class NeuralignModel(torch.nn.Module):
             Q_name = f"_Q_{n}"
             self.register_buffer(Q_name, f.Q.clone())
             self._Q_names.append(Q_name)
-        
-        # make Q indexable by session
+
         self._refresh_Q_views()
-        
-        # usually require grad
+
         H = factors.H.abs() if self.cfg.non_negative else factors.H
         self._H = torch.nn.Parameter(H.clone())
         self._S_n = torch.nn.ParameterList([
@@ -123,11 +105,9 @@ class NeuralignModel(torch.nn.Module):
             torch.nn.Parameter((f.U.abs() if self.cfg.non_negative else f.U).clone())
             for f in factors.tensor_factors
         ])
-        
-        # initialize condition centroids self.C if trial labels are provided
+
         self.init_condition_centroids()
-        
-        # print model summary
+
         if self.cfg.progress:
             print(self)
 
@@ -162,11 +142,11 @@ class NeuralignModel(torch.nn.Module):
         return _positive(self._C) if self.cfg.non_negative else self._C
         
     def set_seed_prescision(self, seed: int):
-        """Set the random seed for reproducibility and set precision to float32"""
+        """Seed NumPy and PyTorch and use float32 with high matmul precision."""
         torch.manual_seed(seed)
         np.random.seed(seed)
         torch.set_default_dtype(torch.float32)
-        torch.set_float32_matmul_precision("high") # use high precision for matrix multiplications
+        torch.set_float32_matmul_precision("high")
 
     def _refresh_tensor_views(self):
         """Cache directly indexable views of the registered tensor buffers."""
@@ -214,11 +194,11 @@ class NeuralignModel(torch.nn.Module):
         ]
         
     def init_trial_labels(self):
-        """Prepare trial labels and indicies for each tensor if provided"""
+        """Index each session's alignment trials by condition."""
         if self.trial_labels is None:
             self.n_conditions = 0
             self.condition_labels = None
-            return # no trial labels provided, skip
+            return
         if len(self.trial_labels) != len(self.tensors):
             raise ValueError("Trial labels must contain one entry for each tensor.")
         if not all(
@@ -240,10 +220,9 @@ class NeuralignModel(torch.nn.Module):
         self.condition_labels = unique_labels
         self.n_conditions = len(unique_labels)
         label_to_index = {label: i for i, label in enumerate(unique_labels)}
-        
-        # collect trial indices for each condition for each tensor
-        self.label_info = [] # model level label info (tensor index, condition index, trial indices)
-        self.session_label_info = [] # session level label info (condition index, trial indices)
+
+        self.label_info = [] # (session index, condition index, trial indices)
+        self.session_label_info = []
         self._label_info_buffer_names = []
         for n, labels in enumerate(self.trial_labels):
             positions = {}
@@ -259,8 +238,8 @@ class NeuralignModel(torch.nn.Module):
                 self.register_buffer(buffer_name, cond_indices, persistent=False)
                 self._label_info_buffer_names.append(buffer_name)
 
-            self.label_info.extend(condition_info) # can access as a full iterable
-            self.session_label_info.append(condition_info) # can access iterable by session (tensor) index
+            self.label_info.extend(condition_info)
+            self.session_label_info.append(condition_info)
                 
     def _refresh_label_info_views(self):
         """Cache directly indexable views of the registered label info buffers."""
@@ -274,7 +253,7 @@ class NeuralignModel(torch.nn.Module):
         self.Q_n = [getattr(self, name) for name in self._Q_names]
 
     def _apply(self, fn, recurse=True):
-        """ Make sure buffers move elegantly with the decomposition"""
+        """Refresh cached tensor views after a device or dtype change."""
         super()._apply(fn, recurse=recurse)
         self._refresh_tensor_views()
         self._refresh_trial_mask_views()
@@ -284,15 +263,15 @@ class NeuralignModel(torch.nn.Module):
     
     def init_condition_centroids(self):
         if self.trial_labels is None:
-            return # no trial labels provided, skip
-        # initialize condition centroids as the mean of the trial factors for each condition across all tensors
+            return
+        # Average each condition's trial factors across sessions.
         C = [[] for _ in range(self.n_conditions)]
 
         for n, cond, cond_indices in self.label_info:
-            m_nc = torch.mean(self.U[n].index_select(0, cond_indices), dim=0) # mean of the n-th tensor's trial factors for condition c
+            m_nc = torch.mean(self.U[n].index_select(0, cond_indices), dim=0)
             C[cond].append(m_nc)
         
-        C = torch.stack([torch.mean(torch.stack(c), dim=0) for c in C]) # mean across tensors for each condition
+        C = torch.stack([torch.mean(torch.stack(c), dim=0) for c in C])
         if self.cfg.non_negative:
             C = C.abs()
         self._C = torch.nn.Parameter(C) # shape (n_conditions, rank)
@@ -302,8 +281,7 @@ class NeuralignModel(torch.nn.Module):
         print_str = f"NeuralignModel(rank={self.cfg.rank}, max_iter={self.cfg.max_iter}, lr={self.cfg.lr})\n"
         print_str += f"Number of tensors: {len(self.tensors)} Number of conditions: {self.n_conditions}\n"
         print_str += "Tensor\tneurons\ttime\ttrials\n"
-        
-        # print the first max_print - 1 tensors and the last tensor if there are more than max_print tensors
+
         for n, tensor in enumerate(self.tensors[:max_print - 1]):
             print_str += f"{n}\t{tensor.shape[0]}\t{tensor.shape[1]}\t{tensor.shape[2]}\n"
         if len(self.tensors) > max_print:
@@ -342,30 +320,22 @@ class NeuralignModel(torch.nn.Module):
                 },
             },
         )
-        
-        # reorder the factors based on global weights w
+
         return neuralign_factors.reorder_factors()
     
     @torch.no_grad()
     def finalize(self, trainer):
-        """ Finalize the decomposition by fixing the gauge and re-computing Q_n for each tensor.
-        Called by the trainer after training is complete
-        """
-        # Fix the gauge of the decomposition into the global weights
-        
+        """Fix the gauge and recompute session projections after training."""
+
         if self.cfg.gauge_fix and not self.cfg.non_negative:
             gauge_fix_model(self, sign_fix=True if self.cfg.non_negative else False)
 
-        # Recompute Q_n for each tensor
         trainer.losses["Coordinates"][0].update_projections(self)
         
     def fit(self, device):
-        """ Fit the Neuralign decomposition model to the tensor sequence using 'cpu' or 'cuda' device.
-        Returns a NeuralignFactors object 
-        """
+        """Fit on ``device`` (``"cpu"`` or ``"cuda"``) and return NeuralignFactors."""
         print(f"Fitting NeuralignModel on device: {device}")
-        
-        # move model to device
+
         self.to(device) 
         
         callbacks = [EarlyStopping(self.cfg.patience, self.cfg.tol)]
@@ -375,7 +345,7 @@ class NeuralignModel(torch.nn.Module):
             callbacks.append(GaugeFixing())
 
         losses = {}
-        # losses
+
         if self.cfg.lambda_tensor_reconstruction > 0.0:
             losses["Tensor"] = (
                 TensorReconstructionLoss([torch.linalg.norm(tensor) ** 2 for tensor in self.tensors],
@@ -413,19 +383,17 @@ class NeuralignModel(torch.nn.Module):
         return trainer.fit() # returns NeuralignFactors object with metadata
     
     def _validate_tensors(self):
-        
-        # validate tensors have the same number of time points
+
         time_points = [tensor.shape[1] for tensor in self.tensors]
         if len(set(time_points)) > 1:
             raise ValueError("All tensors must have the same number of time points (second dimension).")
-        
-        # validate tensors are positive if non_negative is True
+
         if self.cfg.non_negative:
             for n, tensor in enumerate(self.tensors):
                 if (tensor < 0).any():
                     raise ValueError(f"Tensor {n} contains negative values but non_negative is set to True.")        
 
-# helper class
+
 class _FactorAccessor:
     def __init__(self, raw, transform=None):
         self.raw = raw

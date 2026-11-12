@@ -1,58 +1,44 @@
 # Model and outputs
 
-Each session is reconstructed as a sum of components:
+Each component combines a shared temporal profile with a weight for each neuron and trial. Neuralign also learns a shared component geometry and a projection for each session.
 
-```text
-Z_hat[n, neuron, time, trial]
-    = sum(w[c] * A[n][neuron,c] * V[time,c] * U[n][trial,c])
-```
+## Factors
 
-`w` and the temporal factors `V` are shared. Each session has neuron factors `A`, trial factors `U`, an orthonormal projection `Q` and gains `S`. The shared mixing matrix `H` links component directions across sessions through a soft constraint:
+For `session = factors[0]`, the main outputs are:
 
-```text
-A[n] ≈ Q[n] @ H @ diag(S[n])
-```
-
-## Access factors
-
-```python
-session = factors[0]                    # same as factors.session(0)
-V = factors.V                          # time × components
-U = session.trial_factors               # trials × components
-A = session.neuron_factors              # neurons × components
-Q = session.projection_matrix           # neurons × latent coordinates
-S = session.scaling_matrix              # one gain per component
-H = factors.H                          # latent coordinates × components
-```
-
-Factor arrays are PyTorch tensors. Use `value.detach().cpu().numpy()` for NumPy plotting.
-
-## Choose a representation
-
-| Method | What it represents | Output shape |
+| Output | Shape | Meaning |
 | --- | --- | --- |
-| `session.reconstructed_tensor()` | Model prediction using fitted A | neurons × time × trials |
-| `session.reconstructed_latent_tensor()` | Model prediction using H and S | latent coordinates × time × trials |
+| `factors.V` | time × components | Shared temporal profiles |
+| `session.neuron_factors` | neurons × components | Neuron weights |
+| `session.trial_factors` | trials × components | Expression on each trial |
+| `session.scaling_matrix` | components | Session gains |
+| `session.projection_matrix` | neurons × latent coordinates | Session projection Q |
+| `factors.H` | latent coordinates × components | Shared geometry H |
+
+Latent coordinates and components both have size `rank`. Outputs are PyTorch tensors; use `value.detach().cpu().numpy()` for NumPy plotting.
+
+## Reconstructions and trajectories
+
+| Method | Meaning | Output shape |
+| --- | --- | --- |
+| `session.reconstructed_tensor()` | Model prediction using neuron factors | neurons × time × trials |
+| `session.reconstructed_latent_tensor()` | Model prediction using shared geometry and session gains | latent coordinates × time × trials |
 | `session.latent_trajectories()` | The same latent prediction, trials first | trials × time × latent coordinates |
 | `session.projected_trajectories(Z)` | Measured activity projected with Q | trials × time × latent coordinates |
 
-A projection retains a linear view of measured activity. A reconstruction restricts activity to the fitted component profiles. Because coupling is soft, projecting the full reconstruction need not equal the latent reconstruction.
+A projection shows measured activity in the shared space. A reconstruction shows the model prediction. The model softly couples neuron weights to the shared geometry (`A ≈ Q @ H @ diag(S)`), so projecting a reconstruction need not give the latent reconstruction.
 
-## Reconstruct selected components
+## Select components
 
 ```python
 one = session.reconstructed_tensor(components=0)
-subset = session.reconstructed_latent_tensor(components=[0, 1])
 trajectories = session.latent_trajectories(components=[0, 1])
-unit_weights = session.reconstructed_latent_tensor(components=0, normalized=True)
 ```
 
-Indices are **zero-based**. `None` uses all components; `[]` returns zeros. Selecting components restricts the contributing terms, retaining all output neurons or latent coordinates. A subset is not a new model fit.
+Component indices are **zero-based**. Selection keeps the output shape and includes only the selected components' contributions.
 
-The default `normalized=False` includes global weights `w`. Setting it to `True` replaces only `w` with ones; it does not normalise the output or remove session gains. Stored factors are unchanged.
+Reconstruction methods include global weights `w` by default. `normalized=True` replaces only these weights with ones; it does not normalise the output or remove session gains.
 
-`latent_trajectories` and `projected_trajectories` also accept `layout="tkr"` for time × trials × latent coordinates.
+Trajectory methods also accept `layout="tkr"` for time × trials × latent coordinates.
 
-## Compare fits carefully
-
-Components can change order, sign and scale across fits. Match them before comparing component numbers. A shared component does not establish a causal role, and a fitted temporal profile does not estimate arbitrary within-trial changes in that profile.
+Component order, sign and scale can differ across fits. Match components before comparing them.

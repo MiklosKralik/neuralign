@@ -8,6 +8,7 @@ nav a[aria-current] { color: var(--ink); font-weight: 650; }
 a { color: var(--accent); text-underline-offset: .18em; }
 main { padding-top: 2.5rem; padding-bottom: 3rem; }
 h1 { font-size: 2.6rem; letter-spacing: -.035em; line-height: 1.2; margin: 0 0 1.4rem; }
+h1 img { vertical-align: middle; margin-right: .2rem; }
 h2 { font-size: 1.4rem; margin: 2.4rem 0 .7rem; line-height: 1.4; }
 h3 { margin-top: 1.8rem; }
 p, ul, ol { max-width: 82ch; }

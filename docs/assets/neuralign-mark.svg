@@ -1,14 +1,218 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="17.418851 34.289774 107.635657 107.635657" role="img" aria-labelledby="title">
+  <title id="title">Neuralign: reaching trial factors</title>
+  <!--Extracted from Figure 4d, Monkey C; original trial positions and colours.-->
   <defs>
-    <linearGradient id="g" x1="26" y1="24" x2="228" y2="232" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8EB2FF"/>
-      <stop offset="1" stop-color="#456EFF"/>
-    </linearGradient>
+    <path id="point" d="M 0 1.732051  C 0.459345 1.732051 0.899939 1.549551 1.224745 1.224745  C 1.549551 0.899939 1.732051 0.459345 1.732051 0  C 1.732051 -0.459345 1.549551 -0.899939 1.224745 -1.224745  C 0.899939 -1.549551 0.459345 -1.732051 0 -1.732051  C -0.459345 -1.732051 -0.899939 -1.549551 -1.224745 -1.224745  C -1.549551 -0.899939 -1.732051 -0.459345 -1.732051 0  C -1.732051 0.459345 -1.549551 0.899939 -1.224745 1.224745  C -0.899939 1.549551 -0.459345 1.732051 0 1.732051  z " style="stroke: #000000; stroke-width: 0.05" />
   </defs>
-  <rect x="18" y="18" width="220" height="220" rx="44" fill="#0D1633" stroke="#2E447A" stroke-width="8"/>
-  <path d="M52 166L95 118L126 145L172 92L204 116" stroke="url(#g)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="95" cy="118" r="10" fill="#A8C2FF"/>
-  <circle cx="126" cy="145" r="10" fill="#A8C2FF"/>
-  <circle cx="172" cy="92" r="10" fill="#A8C2FF"/>
-  <text x="128" y="205" text-anchor="middle" fill="#DCE6FF" font-size="28" font-family="Segoe UI, Arial, sans-serif" font-weight="700">N</text>
+  <g>
+    <use xlink:href="#point" x="32.284717" y="78.210986" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="35.331445" y="87.303185" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="33.484638" y="86.173887" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="35.504498" y="88.106518" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="27.422945" y="91.61002" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="26.173154" y="91.500621" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="27.592821" y="90.900492" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="32.327956" y="101.851053" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="26.176031" y="88.488756" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="34.380855" y="96.197375" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="35.933907" y="97.771979" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="34.536886" y="89.839995" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="26.924078" y="93.484069" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="24.393683" y="90.072476" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="29.33049" y="74.808062" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="27.634409" y="77.098735" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="25.686759" y="89.05536" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="24.57407" y="86.417721" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="28.92998" y="82.715734" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="23.463677" y="101.985876" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="28.429128" y="88.684087" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="32.292752" y="89.342104" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="29.03442" y="89.585437" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="23.521194" y="102.056272" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="23.418851" y="94.719749" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="25.756063" y="85.562591" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="26.448627" y="86.757126" style="fill: #d8434e; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="50.020582" y="56.731155" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="42.339666" y="58.372372" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="43.316847" y="61.692825" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="47.47576" y="59.863457" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="48.87547" y="52.417556" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="45.540669" y="64.141934" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="39.803392" y="61.074732" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="44.065665" y="58.735168" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="50.58062" y="52.58993" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="37.3608" y="62.380603" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="41.04958" y="68.168889" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="42.932809" y="64.583843" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="43.070203" y="59.512108" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.01329" y="60.220599" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="41.151525" y="65.002727" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="45.764072" y="55.764584" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="42.609676" y="56.653455" style="fill: #f67a49; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="61.717718" y="54.156476" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="63.43027" y="43.632002" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="64.101666" y="56.181461" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="61.859759" y="60.503476" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="58.718325" y="51.886804" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="59.236931" y="66.279786" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="59.219286" y="49.648275" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="68.928668" y="54.751451" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="54.611065" y="64.282319" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="54.480152" y="54.555345" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="62.2265" y="52.386879" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="61.470491" y="53.974562" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="61.460126" y="48.02162" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="60.239568" y="55.817885" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="62.293875" y="51.893179" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="72.991743" y="56.67831" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="58.279099" y="62.001107" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="59.511996" y="52.864714" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="60.728127" y="52.724571" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="58.641932" y="55.922417" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="63.076551" y="60.571004" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="59.99454" y="51.863834" style="fill: #fdbf6f; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="97.787125" y="72.609059" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.316966" y="73.18686" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.15731" y="67.7825" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="90.971212" y="70.595948" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="94.152194" y="68.68214" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="90.462651" y="73.97834" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="95.69614" y="79.292284" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="95.929293" y="79.63616" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.660408" y="68.972598" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="90.241899" y="70.814274" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="86.441656" y="76.74611" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="90.596293" y="65.417186" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="78.862152" y="69.86723" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="85.836718" y="72.838223" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="92.086042" y="76.563236" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="89.557415" y="77.335956" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="83.70137" y="74.426599" style="fill: #feeda1; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="110.142256" y="91.377419" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="119.054508" y="88.351109" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="114.599907" y="92.661583" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="114.062195" y="88.515783" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="117.159568" y="87.906301" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="105.950854" y="92.611079" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="105.067476" y="92.240182" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="117.490764" y="95.392998" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="106.389982" y="96.978" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="105.628605" y="91.414831" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="109.260175" y="93.394624" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="112.142075" y="98.30669" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="114.315678" y="98.691895" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="110.402672" y="94.312261" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="115.213281" y="96.401305" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="112.700731" y="94.207743" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="116.597621" y="100.581117" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="108.268428" y="97.65194" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="109.332924" y="98.442524" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="115.301826" y="90.804843" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="115.275362" y="93.915468" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="118.160269" y="91.020888" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="106.478406" y="93.796861" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="111.252369" y="96.132861" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.470336" y="90.140859" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="115.562411" y="100.63617" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="115.901963" y="95.684166" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="110.799173" y="86.924225" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="109.525395" y="100.643995" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="111.902631" y="100.140138" style="fill: #f1f9a9; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="100.446638" y="108.373786" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="109.27991" y="114.7699" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="102.355159" y="108.025648" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="109.019381" y="116.148214" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="106.306826" y="120.712405" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="105.456678" y="123.473438" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="95.920592" y="121.470229" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="98.770444" y="124.505292" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="106.149776" y="116.299619" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="103.744179" y="117.871663" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="108.503616" y="120.257234" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="99.467573" y="117.992891" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="103.226907" y="125.585973" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="96.74559" y="126.741176" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="104.266399" y="122.451562" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="96.807927" y="122.752325" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="95.321006" y="123.451658" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="101.802226" y="122.208429" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.63274" y="116.399301" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="97.705184" y="120.834649" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.314896" y="117.217872" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="93.490925" y="119.897057" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="101.344241" y="123.446241" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="92.015432" y="122.022422" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="94.563289" y="122.312701" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="103.408192" y="121.083153" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="103.23853" y="120.117879" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="104.27858" y="121.710736" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="104.082712" y="121.135475" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="98.003998" y="122.607546" style="fill: #bfe5a0; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="82.009121" y="120.770429" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="75.487721" y="125.456984" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="72.288131" y="120.353819" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.222347" y="126.240984" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="76.450808" y="125.304604" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="74.551907" y="128.892534" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="83.236133" y="129.543025" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.474266" y="127.487534" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="77.742086" y="127.616582" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.067118" y="132.583203" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="74.032795" y="128.869218" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.639052" y="127.582658" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.052189" y="128.913721" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="77.990884" y="129.913224" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="68.277188" y="122.188133" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="78.288145" y="130.132079" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="75.8331" y="128.530485" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="71.475825" y="128.856205" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="67.943025" y="130.161294" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="73.147631" y="126.61117" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="76.47136" y="123.969142" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="72.547885" y="125.422355" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="67.588835" y="128.395978" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="65.532246" y="128.049821" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="74.500896" y="126.961515" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="68.753266" y="127.689088" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="72.166484" y="124.800182" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="69.383434" y="129.03084" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="63.745066" y="126.562366" style="fill: #74c7a5; stroke: #000000; stroke-width: 0.05" />
+  </g>
+  <g>
+    <use xlink:href="#point" x="49.395642" y="116.635066" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="34.972676" y="112.686443" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="32.070704" y="116.655259" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="37.615489" y="125.536142" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="50.579005" y="121.771811" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="41.952225" y="127.315681" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="37.522591" y="118.114233" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.760418" y="114.218053" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="40.902302" y="116.346858" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="46.163022" y="119.317365" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="43.124421" y="126.443921" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="32.232726" y="121.092566" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.888613" y="121.717311" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.435613" y="124.233982" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.4462" y="118.687832" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="32.285275" y="119.309923" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="40.692997" y="120.356905" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="35.187271" y="122.440722" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="38.352367" y="114.775771" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="37.311665" y="127.604719" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="40.819708" y="109.171591" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="34.583632" y="122.832164" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+    <use xlink:href="#point" x="33.220274" y="121.117093" style="fill: #378ebb; stroke: #000000; stroke-width: 0.05" />
+  </g>
 </svg>

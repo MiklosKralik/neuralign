@@ -1,58 +1,31 @@
-# Getting started
+# Your recordings
 
-## Install
+For installation and a runnable simulation, start with the [quickstart](index.md).
 
-```bash
-pip install "neuralign[examples] @ git+https://github.com/MiklosKralik/neuralign.git"
-```
+## Prepare the data
 
-Python 3.10 or later is required. The `examples` extra installs Matplotlib for plotting; the model itself requires NumPy and PyTorch. For a local checkout:
+Use a list of floating-point NumPy arrays or PyTorch tensors, each shaped **neurons × time × trials**. Sessions may contain different neurons and trial counts. Their time bins must represent the same trial-aligned times.
 
-```bash
-uv sync --extra examples
-uv run python examples/quickstart.py
-```
-
-The example saves `examples/quickstart.png` and displays the figure. Use `MPLBACKEND=Agg` when running without a display.
-
-## Prepare your recordings
-
-Provide a list of floating-point arrays or tensors, each shaped **neurons × time × trials**. Neuron and trial counts may differ between sessions. Time bins must match, and the rank cannot exceed any session's neuron count. Choose preprocessing for your data; fit its statistics on training data when evaluating held-out observations.
+Choose preprocessing appropriate for your recordings. When evaluating held-out data, estimate preprocessing statistics on the training data only.
 
 ## Fit and inspect
 
 ```python
-from neuralign import NeuralignConfig, NeuralignModel
-from neuralign.simulation import simulate_sessions
+from neuralign import NeuralignModel
 
-sessions, truth = simulate_sessions(seed=42)
-factors = NeuralignModel(
-    sessions,
-    config=NeuralignConfig(rank=2, max_iter=500, seed=42, progress=False),
-).fit("cpu")
+sessions = [recording_a, recording_b]  # your neurons × time × trials arrays
+factors = NeuralignModel(sessions, rank=4, seed=42).fit("cpu")
 
-session = factors.session(0)
-print(factors.V.shape)                   # time, components
-print(session.neuron_factors.shape)      # neurons, components
-print(session.trial_factors.shape)       # trials, components
-reconstructed = session.reconstructed_tensor()
+temporal = factors.V                      # time × components
+neurons = factors[0].neuron_factors        # neurons × components
+trials = factors[0].trial_factors          # trials × components
+reconstructed = factors[0].reconstructed_tensor()
 ```
 
-Use `fit("cuda")` with a compatible CUDA-enabled PyTorch installation.
+`rank` sets the number of components. With the default initialisation, it must not exceed any session's neuron count or the number of time bins. Use `fit("cuda")` with a CUDA-enabled PyTorch installation.
 
-## Complete plotting example
+To guide alignment with known conditions, pass `trial_labels=labels_by_session`, with one label per trial in each session. Labels guide alignment using condition means; they are not reconstruction targets.
 
-[Download quickstart.py](assets/quickstart.py), or run it from the package's `examples` folder. Its small simulator uses the sigmoid/transient profiles and changing trial factors from the manuscript's identifiability example, with light Gaussian noise. It is a teaching example, not the full Poisson benchmark. Component order, sign and scale can differ between the generating and fitted factors.
+See [model outputs](model-and-outputs.md) to choose factors or trajectories, and the [API](api.md) for fitting options.
 
-{{example}}
-
-## Optional condition labels
-
-```python
-factors = NeuralignModel(
-    sessions, trial_labels=labels_by_session,
-    config=NeuralignConfig(rank=2, seed=42),
-).fit("cpu")
-```
-
-Supply one label per trial in each session. Labels orient alignment using condition means; they are not reconstruction targets. See the [API reference](api.html) for masks and adding new sessions.
+The [plotting example](assets/quickstart.py) also needs Matplotlib (`python -m pip install matplotlib`). It saves a figure next to the script.

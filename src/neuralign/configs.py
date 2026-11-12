@@ -1,6 +1,4 @@
-"""
-Configuration for Neuralign.
-"""
+"""Neuralign fitting options."""
 
 from dataclasses import asdict, dataclass, fields
 from typing import Any, Dict
@@ -8,11 +6,8 @@ from typing import Any, Dict
 
 @dataclass
 class NeuralignConfig:
-    """
-    Configuration for Neuralign with sensible defaults.
-    """
+    """Configuration for fitting and adapting session tensors."""
 
-    # core optimisation
     rank: int = 4
     init: str = "svd"
     gauge_fix: bool = True
@@ -25,16 +20,15 @@ class NeuralignConfig:
     progress: bool = True
     seed: int | None = None
 
-    # loss weights
     lambda_tensor_reconstruction: float = 1.0
     lambda_procrustes: float = 1.0 # coordinate alignment loss (can be condition-aware)
-    # During partial_fit, shrink unmasked condition means in the new trial
-    # factors toward the frozen source condition prototypes. None selects the
-    # supervised-adaptation default and 0.0 explicitly disables the loss.
+    # Adaptation penalty toward frozen condition means: None uses the default;
+    # 0.0 disables it. Only recognized, unmasked conditions contribute.
     lambda_condition_centroid: float | None = None
     procrustes_every_k: int = 3 # how often to re-compute aligned coordinates (expensive)
     lambda_global_gram: float = 0.0 # global geometry loss (regularizer)
     lambda_neuron_sparsity: float = 0.0 # weight for the neuron sparsity loss (regularizer)
+
 
 def to_dict(cfg: NeuralignConfig) -> Dict[str, Any]:
     return asdict(cfg)

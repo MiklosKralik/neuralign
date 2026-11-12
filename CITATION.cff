@@ -2,12 +2,12 @@ cff-version: 1.2.0
 message: "If you use Neuralign, please cite this software and the associated manuscript."
 title: "Neuralign"
 type: software
+license: MIT
 version: 0.1.0
-url: "https://github.com/MiklosKralik/neuralign"
 repository-code: "https://github.com/MiklosKralik/neuralign"
 authors:
-  - family-names: Kralik
-    given-names: Miklos
+  - family-names: Králik
+    given-names: Miklós
   - family-names: Tinelli
     given-names: Sasha
   - family-names: Kozloski
@@ -19,11 +19,11 @@ authors:
   - family-names: Peach
     given-names: Robert L.
 preferred-citation:
-  type: article
-  title: "Neuralign jointly aligns trial-resolved neural dynamics across recordings"
+  type: unpublished
+  title: "Identifying aligned tensor decompositions across heterogeneous neural datasets"
   authors:
-    - family-names: Kralik
-      given-names: Miklos
+    - family-names: Králik
+      given-names: Miklós
     - family-names: Tinelli
       given-names: Sasha
     - family-names: Kozloski
@@ -34,4 +34,3 @@ preferred-citation:
       given-names: Andrew
     - family-names: Peach
       given-names: Robert L.
-  year: 2026

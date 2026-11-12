@@ -1,29 +1,45 @@
-# Neuralign
+# <img src="assets/neuralign-mark.png" width="36" alt="" /> Neuralign
 
-Align neural recordings. Keep their neurons, timing and individual trials.
+Find shared activity patterns across neural recordings, with a factor for each neuron and each trial.
 
-Neuralign fits recordings together using shared temporal components and session-specific neuron and trial factors. Sessions can have different neurons and trial counts; they must share the same time axis.
+[![Neuralign model overview](assets/neuralign-overview.png)](assets/neuralign-overview.pdf)
 
-## Start with a small example
+## Install
 
-```python
-from neuralign import NeuralignConfig, NeuralignModel
-from neuralign.simulation import simulate_sessions
+Python 3.10 or later. From PyPI, after the first release:
 
-sessions, truth = simulate_sessions(seed=42)
-config = NeuralignConfig(rank=2, max_iter=500, seed=42, progress=False)
-factors = NeuralignModel(sessions, config=config).fit("cpu")
+```bash
+python -m pip install neuralign
 ```
 
-[Run the example and plot the results](getting-started.html). It generates its own data and needs no manuscript caches.
+Or directly from GitHub:
 
-![Generating factors, fitted factors and reconstructions](assets/quickstart.png)
+```bash
+python -m pip install git+https://github.com/MiklosKralik/neuralign.git
+```
 
-## Find what you need
+## Quickstart
 
-- [Getting started](getting-started.html): installation, input format and a complete example.
-- [Model and outputs](model-and-outputs.html): factors, projections and reconstructions.
-- [API reference](api.html): commonly used classes, methods and settings.
-- [Reproducibility](reproducibility.html): save fits and separate fitting from evaluation.
+This example generates its own data:
 
-Neuralign is research software. The current package version is 0.1.0; record the version or commit used in your analysis.
+```python
+from neuralign import NeuralignModel
+from neuralign.simulation import simulate_sessions
+
+sessions, _ = simulate_sessions(seed=42)
+factors = NeuralignModel(sessions, rank=2, max_iter=500, seed=42).fit("cpu")
+
+time_factors = factors.V                       # time × components
+neuron_factors = factors[0].neuron_factors       # neurons × components
+trial_factors = factors[0].trial_factors         # trials × components
+```
+
+For your own recordings, pass a list of arrays in **neurons × time × trials** order. Sessions may have different neuron and trial counts, but must share time bins.
+
+[Model and outputs](model-and-outputs.md) · [Use your recordings](getting-started.md) · [Plotting example](https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py)
+
+## Paper
+
+Companion code for *Identifying aligned tensor decompositions across heterogeneous neural datasets*.
+
+Please cite the software and manuscript when using Neuralign in research. [Citation](https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff) · [Paper analyses](https://github.com/MiklosKralik/neural_tensors) · [MIT License](https://github.com/MiklosKralik/neuralign/blob/main/LICENSE).

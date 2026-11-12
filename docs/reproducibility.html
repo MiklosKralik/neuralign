@@ -1,19 +1,16 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reproducibility · Neuralign</title><link rel="stylesheet" href="style.css"></head>
-<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Start here</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" aria-current=page>Reproducibility</a></nav><main><h1>Reproducibility</h1>
-<h2>Record a fit</h2>
-<p>Set a seed and save the fitted collection:</p>
-<pre><code class="language-python">config = NeuralignConfig(rank=6, seed=42)
-factors = NeuralignModel(sessions, config=config).fit(&quot;cpu&quot;)
+<title>Save a fit · Neuralign</title><link rel="icon" href="assets/neuralign-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" aria-current=page>Save a fit</a></nav><main><h1>Saving and evaluating fits</h1>
+<p>Set a seed and save the fitted factors:</p>
+<pre><code class="language-python">from neuralign import NeuralignFactors, NeuralignModel
+
+factors = NeuralignModel(sessions, rank=4, seed=42).fit(&quot;cpu&quot;)
 factors.save(&quot;fit.pt&quot;)
+loaded = NeuralignFactors.load(&quot;fit.pt&quot;)
 </code></pre>
-<p>Keep the package version or commit, preprocessing settings, session order and trial labels alongside it. Save decoder splits separately. GPU results can vary across hardware even with a fixed seed. Load PyTorch files only from trusted sources.</p>
-<h2>Separate fitting from evaluation</h2>
-<p>Fitting all sessions jointly, then holding sessions out of decoder training, measures decoder transfer within that shared fit. It does not hold sessions out of representation fitting.</p>
-<p>Use <code>partial_fit</code> when adding recordings to a frozen shared representation. Its new session factors still use the supplied activity, so define the evaluation split for the scientific question. A <code>trial_mask</code> excludes trials from alignment, not reconstruction.</p>
-<p>For new datasets, compare several ranks and seeds, inspect reconstruction and alignment losses, and match components before interpreting differences across fits. Repeated fits measure optimisation variability, not biological replication.</p>
-<h2>Manuscript analyses</h2>
-<p>The <a href="https://github.com/MiklosKralik/neural_tensors">companion repository</a> contains the experimental analyses, session lists and figure notebooks. The package's quickstart is independent of those recordings and cached fits.</p>
-</main>
-<footer>Neuralign · research software · version 0.1.0</footer></body></html>
+<p>Keep the package version or commit, preprocessing settings, session order, labels and evaluation splits alongside the fit. GPU results can vary across hardware. Load saved fits only from trusted sources.</p>
+<p>Choose rank by comparing several fits and inspect reconstruction quality. Match components before comparing fits: their order, sign and scale can vary.</p>
+<p>Fitting all sessions jointly and holding some out of decoder training measures decoder transfer within the fitted cohort. For a frozen shared representation, use <code>partial_fit</code> to add sessions; their factors still use the supplied activity. A <code>trial_mask</code> excludes trials from alignment, not reconstruction.</p>
+<p>The <a href="https://github.com/MiklosKralik/neural_tensors">analysis repository</a> contains the manuscript pipelines. Their recordings and fitted caches are supplied separately.</p>
+</main></body></html>

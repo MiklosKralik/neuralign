@@ -4,19 +4,6 @@
 <body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Save a fit</a></nav><main><h1><img src="assets/neuralign-mark.png" width="36" alt="" /> Neuralign</h1>
 <p>Find shared activity patterns across neural recordings, with a factor for each neuron and each trial.</p>
 <p><a href="assets/neuralign-overview.pdf"><img src="assets/neuralign-overview.png" alt="Neuralign model overview"></a></p>
-<h2>Install</h2>
-<p>Python 3.10 or later. Install from <a href="https://pypi.org/project/neuralign/">PyPI</a>.</p>
-<p>For CPU-only use, install CPU PyTorch first, then Neuralign:</p>
-<pre><code class="language-bash">python -m pip install &quot;torch&gt;=2.9.1&quot; --index-url https://download.pytorch.org/whl/cpu
-python -m pip install neuralign
-</code></pre>
-<p>For CUDA on Linux with a compatible NVIDIA GPU and driver (recommended for larger datasets):</p>
-<pre><code class="language-bash">python -m pip install neuralign
-</code></pre>
-<p>PyTorch's default PyPI wheels include CUDA dependencies on Linux, so plain <code>pip install neuralign</code> also downloads them unless CPU PyTorch is already installed. Installing Neuralign does not replace an existing CPU build. To switch builds, or install CUDA on Windows, follow the <a href="https://pytorch.org/get-started/locally/">PyTorch installation selector</a>. CUDA is unavailable on macOS.</p>
-<p>Or install Neuralign directly from GitHub after installing your preferred PyTorch build:</p>
-<pre><code class="language-bash">python -m pip install git+https://github.com/MiklosKralik/neuralign.git
-</code></pre>
 <h2>Quickstart</h2>
 <p>This example generates its own data:</p>
 <pre><code class="language-python">from neuralign import NeuralignModel
@@ -30,7 +17,32 @@ neuron_factors = factors[0].neuron_factors       # neurons × components
 trial_factors = factors[0].trial_factors         # trials × components
 </code></pre>
 <p>For your own recordings, pass a list of arrays in <strong>neurons × time × trials</strong> order. Sessions may have different neuron and trial counts, but must share time bins.</p>
-<p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py">Plotting example</a></p>
+<p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a></p>
+<h2>See the factors</h2>
+<p>The fit separates shared time courses from neuron weights and trial-to-trial changes:</p>
+<p><img src="assets/quickstart.png" alt="Shared temporal factors, neuron weights and trial factors from simulated recordings"></p>
+<p>Plot the quickstart's factors with Matplotlib:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(1, 3, figsize=(10, 3), layout=&quot;constrained&quot;)
+axes[0].plot(time_factors.detach().numpy())
+axes[0].set_title(&quot;Shared time courses&quot;)
+axes[1].imshow(neuron_factors.detach().numpy(), aspect=&quot;auto&quot;, cmap=&quot;RdBu_r&quot;)
+axes[1].set_title(&quot;Neuron weights&quot;)
+axes[2].plot(trial_factors.detach().numpy())
+axes[2].set_title(&quot;Trial weights&quot;)
+plt.show()
+</code></pre>
+<p>Read left to right: when each component is active, which neurons contribute, and how its strength varies across trials. <a href="https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py">Full example with axis labels</a>.</p>
+<h2>Install</h2>
+<p>Python 3.10+; GPU fitting is recommended for larger datasets (use <code>fit(&quot;cuda&quot;)</code>).</p>
+<pre><code class="language-bash">python -m pip install neuralign
+</code></pre>
+<p>For CPU-only installation, install CPU PyTorch first:</p>
+<pre><code class="language-bash">python -m pip install &quot;torch&gt;=2.9.1&quot; --index-url https://download.pytorch.org/whl/cpu
+python -m pip install neuralign
+</code></pre>
+<p>For plotting, add Matplotlib: <code>python -m pip install matplotlib</code>.</p>
 <h2>Paper</h2>
 <p>Neuralign is described in <a href="https://doi.org/10.64898/2026.11.12.766278"><em>Identifying aligned tensor decompositions across heterogeneous neural datasets</em></a> (bioRxiv, 2026).</p>
 <p>Please cite the software and manuscript when using Neuralign in research. <a href="https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff">Citation</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/LICENSE">MIT License</a>.</p>

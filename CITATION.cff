@@ -3,7 +3,7 @@ message: "If you use Neuralign, please cite this software and the associated man
 title: "Neuralign"
 type: software
 license: MIT
-version: 0.1.0
+version: 0.1.1
 repository-code: "https://github.com/MiklosKralik/neuralign"
 authors:
   - family-names: Králik
@@ -19,7 +19,13 @@ authors:
   - family-names: Peach
     given-names: Robert L.
 preferred-citation:
-  type: unpublished
+  type: article
+  journal: bioRxiv
+  doi: 10.64898/2026.11.12.766278
+  url: "https://doi.org/10.64898/2026.11.12.766278"
+  year: 2026
+  month: 11
+  day: 13
   title: "Identifying aligned tensor decompositions across heterogeneous neural datasets"
   authors:
     - family-names: Králik

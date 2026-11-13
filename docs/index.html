@@ -5,10 +5,16 @@
 <p>Find shared activity patterns across neural recordings, with a factor for each neuron and each trial.</p>
 <p><a href="assets/neuralign-overview.pdf"><img src="assets/neuralign-overview.png" alt="Neuralign model overview"></a></p>
 <h2>Install</h2>
-<p>Python 3.10 or later. From PyPI, after the first release:</p>
-<pre><code class="language-bash">python -m pip install neuralign
+<p>Python 3.10 or later. Install from <a href="https://pypi.org/project/neuralign/">PyPI</a>.</p>
+<p>For CPU-only use, install CPU PyTorch first, then Neuralign:</p>
+<pre><code class="language-bash">python -m pip install &quot;torch&gt;=2.9.1&quot; --index-url https://download.pytorch.org/whl/cpu
+python -m pip install neuralign
 </code></pre>
-<p>Or directly from GitHub:</p>
+<p>For CUDA on Linux with a compatible NVIDIA GPU and driver (recommended for larger datasets):</p>
+<pre><code class="language-bash">python -m pip install &quot;neuralign[cuda]&quot;
+</code></pre>
+<p>PyTorch's default PyPI wheels include CUDA dependencies on Linux, so plain <code>pip install neuralign</code> also downloads them unless CPU PyTorch is already installed. The <code>cuda</code> extra uses the same PyPI PyTorch dependency; it does not replace an existing CPU build. To switch builds, or install CUDA on Windows, follow the <a href="https://pytorch.org/get-started/locally/">PyTorch installation selector</a>. CUDA is unavailable on macOS.</p>
+<p>Or install Neuralign directly from GitHub after installing your preferred PyTorch build:</p>
 <pre><code class="language-bash">python -m pip install git+https://github.com/MiklosKralik/neuralign.git
 </code></pre>
 <h2>Quickstart</h2>
@@ -26,6 +32,6 @@ trial_factors = factors[0].trial_factors         # trials × components
 <p>For your own recordings, pass a list of arrays in <strong>neurons × time × trials</strong> order. Sessions may have different neuron and trial counts, but must share time bins.</p>
 <p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py">Plotting example</a></p>
 <h2>Paper</h2>
-<p>Neuralign is described in <em>Identifying aligned tensor decompositions across heterogeneous neural datasets</em>.</p>
+<p>Neuralign is described in <a href="https://doi.org/10.64898/2026.11.12.766278"><em>Identifying aligned tensor decompositions across heterogeneous neural datasets</em></a> (bioRxiv, 2026).</p>
 <p>Please cite the software and manuscript when using Neuralign in research. <a href="https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff">Citation</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/LICENSE">MIT License</a>.</p>
 </main></body></html>

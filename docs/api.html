@@ -74,13 +74,11 @@
 </table>
 <p>The default Frobenius loss fits continuous activity. Count losses require nonnegative counts: <code>&quot;poisson&quot;</code> models rates and <code>&quot;poisson_log&quot;</code> models log-rates. For log-Poisson fits, exponentiate <code>reconstructed_tensor()</code> to obtain rates.</p>
 <h2>NeuralignModel</h2>
-<pre><code class="language-python">NeuralignModel(tensor_sequence, trial_labels=None, trial_mask=None,
-               config=None, **settings)
+<pre><code class="language-python">NeuralignModel(tensor_sequence, trial_labels=None, config=None, **settings)
 model.fit(device=&quot;cpu&quot;)
 </code></pre>
 <p><code>fit</code> returns <code>NeuralignFactors</code>. Inputs use neurons × time × trials and share a time axis.</p>
 <p><code>trial_labels</code> provides one label sequence per session. Alignment uses trial means without labels and condition means with labels.</p>
-<p><code>trial_mask</code> provides one Boolean array per session. <strong>True excludes a trial from alignment only:</strong> it still contributes to reconstruction. Each session needs an unmasked trial.</p>
 <h2>NeuralignFactors</h2>
 <table>
 <thead>
@@ -110,13 +108,8 @@ model.fit(device=&quot;cpu&quot;)
 <td><code>NeuralignFactors.load(path, map_location=&quot;cpu&quot;)</code></td>
 <td>Load a saved fit</td>
 </tr>
-<tr>
-<td><code>factors.partial_fit(...)</code></td>
-<td>Add sessions with shared factors frozen</td>
-</tr>
 </tbody>
 </table>
-<p><code>partial_fit(new_session, device=&quot;cpu&quot;, **settings)</code> returns a copy with new sessions appended. It fits their session factors while freezing <code>w</code>, <code>V</code>, <code>H</code> and condition prototypes. New sessions must share the fitted time axis. Recognised labels anchor alignment; sessions without recognised labels use trial means. Supervised adaptation applies a small condition-centroid penalty; <code>lambda_condition_centroid=0.0</code> disables it.</p>
 <h2>Session outputs</h2>
 <p>Access a session with <code>session = factors[i]</code>. See <a href="model-and-outputs.html">model outputs</a> for its factor properties and shapes.</p>
 <pre><code class="language-python">session.reconstructed_tensor(components=None, *, normalized=False)

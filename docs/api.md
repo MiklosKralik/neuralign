@@ -27,16 +27,13 @@ The default Frobenius loss fits continuous activity. Count losses require nonneg
 ## NeuralignModel
 
 ```python
-NeuralignModel(tensor_sequence, trial_labels=None, trial_mask=None,
-               config=None, **settings)
+NeuralignModel(tensor_sequence, trial_labels=None, config=None, **settings)
 model.fit(device="cpu")
 ```
 
 `fit` returns `NeuralignFactors`. Inputs use neurons × time × trials and share a time axis.
 
 `trial_labels` provides one label sequence per session. Alignment uses trial means without labels and condition means with labels.
-
-`trial_mask` provides one Boolean array per session. **True excludes a trial from alignment only:** it still contributes to reconstruction. Each session needs an unmasked trial.
 
 ## NeuralignFactors
 
@@ -47,9 +44,6 @@ model.fit(device="cpu")
 | `factors.to(device)` | Move tensors to a device |
 | `factors.save(path)` | Save factors, configuration and metadata |
 | `NeuralignFactors.load(path, map_location="cpu")` | Load a saved fit |
-| `factors.partial_fit(...)` | Add sessions with shared factors frozen |
-
-`partial_fit(new_session, device="cpu", **settings)` returns a copy with new sessions appended. It fits their session factors while freezing `w`, `V`, `H` and condition prototypes. New sessions must share the fitted time axis. Recognised labels anchor alignment; sessions without recognised labels use trial means. Supervised adaptation applies a small condition-centroid penalty; `lambda_condition_centroid=0.0` disables it.
 
 ## Session outputs
 

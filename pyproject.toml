@@ -37,8 +37,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# PyPI provides CUDA-enabled PyTorch wheels on Linux.
-cuda = ["torch>=2.9.1"]
 examples = ["matplotlib>=3.8"]
 docs = ["markdown-it-py>=3.0"]
 

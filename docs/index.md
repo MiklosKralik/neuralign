@@ -18,10 +18,10 @@ python -m pip install neuralign
 For CUDA on Linux with a compatible NVIDIA GPU and driver (recommended for larger datasets):
 
 ```bash
-python -m pip install "neuralign[cuda]"
+python -m pip install neuralign
 ```
 
-PyTorch's default PyPI wheels include CUDA dependencies on Linux, so plain `pip install neuralign` also downloads them unless CPU PyTorch is already installed. The `cuda` extra uses the same PyPI PyTorch dependency; it does not replace an existing CPU build. To switch builds, or install CUDA on Windows, follow the [PyTorch installation selector](https://pytorch.org/get-started/locally/). CUDA is unavailable on macOS.
+PyTorch's default PyPI wheels include CUDA dependencies on Linux, so plain `pip install neuralign` also downloads them unless CPU PyTorch is already installed. Installing Neuralign does not replace an existing CPU build. To switch builds, or install CUDA on Windows, follow the [PyTorch installation selector](https://pytorch.org/get-started/locally/). CUDA is unavailable on macOS.
 
 Or install Neuralign directly from GitHub after installing your preferred PyTorch build:
 

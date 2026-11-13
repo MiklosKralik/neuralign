@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plotting example · Neuralign</title><link rel="icon" href="assets/neuralign-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"></head>
+<body><nav aria-label="Main navigation"><a href="index.html" >Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="plotting.html" aria-current=page>Plotting example</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Save a fit</a></nav><main><h1>Plotting example</h1>
+<p>Shared time courses, with neuron and trial factors for two sessions. Requires Matplotlib (<code>python -m pip install matplotlib</code>).</p>
+<pre><code class="language-python">&quot;&quot;&quot;Simulate two sessions, fit Neuralign and plot their factors.&quot;&quot;&quot;
+
+import matplotlib.pyplot as plt
+
+from neuralign import NeuralignModel
+from neuralign.simulation import simulate_sessions
+
+sessions, truth = simulate_sessions(n_sessions=2, seed=42)
+factors = NeuralignModel(
+    sessions, rank=2, max_iter=500, seed=42, progress=False
+).fit(&quot;cpu&quot;)
+
+fig, axes = plt.subplot_mosaic(
+    [[&quot;time&quot;, &quot;neurons1&quot;, &quot;trials1&quot;], [&quot;time&quot;, &quot;neurons2&quot;, &quot;trials2&quot;]],
+    figsize=(11, 6), layout=&quot;constrained&quot;,
+)
+axes[&quot;time&quot;].plot(truth[&quot;time&quot;], factors.V.detach().numpy())
+axes[&quot;time&quot;].set(title=&quot;Shared temporal factors&quot;, xlabel=&quot;Time (s)&quot;, ylabel=&quot;Weight&quot;)
+
+for index in range(2):
+    session = factors[index]
+    neurons = axes[f&quot;neurons{index + 1}&quot;]
+    image = neurons.imshow(
+        session.neuron_factors.detach().numpy(), aspect=&quot;auto&quot;, cmap=&quot;RdBu_r&quot;
+    )
+    neurons.set(
+        title=f&quot;Neuron factors · session {index + 1}&quot;, ylabel=&quot;Neuron&quot;,
+        xlabel=&quot;Component&quot;, xticks=[0, 1], xticklabels=[1, 2],
+    )
+    fig.colorbar(image, ax=neurons, label=&quot;Weight&quot;)
+
+    trials = axes[f&quot;trials{index + 1}&quot;]
+    trials.plot(session.trial_factors.detach().numpy())
+    trials.set(
+        title=f&quot;Trial factors · session {index + 1}&quot;, xlabel=&quot;Trial&quot;, ylabel=&quot;Weight&quot;
+    )
+
+fig.savefig(&quot;quickstart.png&quot;, dpi=160)
+plt.show()
+</code></pre>
+<p><img src="assets/quickstart.png" alt="Shared temporal factors and neuron and trial factors for two sessions"></p>
+</main></body></html>

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Neuralign · Neuralign</title><link rel="icon" href="assets/neuralign-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"></head>
-<body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Save a fit</a></nav><main><h1><img src="assets/neuralign-mark.png" width="36" alt="" /> Neuralign</h1>
+<body><nav aria-label="Main navigation"><a href="index.html" aria-current=page>Neuralign</a> <a href="getting-started.html" >Your recordings</a> <a href="model-and-outputs.html" >Outputs</a> <a href="plotting.html" >Plotting example</a> <a href="api.html" >API</a> <a href="reproducibility.html" >Save a fit</a></nav><main><h1><img src="assets/neuralign-mark.png" width="36" alt="" /> Neuralign</h1>
 <p>Find shared activity patterns across neural recordings, with a factor for each neuron and each trial.</p>
 <p><a href="assets/neuralign-overview.pdf"><img src="assets/neuralign-overview.png" alt="Neuralign model overview"></a></p>
 <h2>Quickstart</h2>
@@ -17,23 +17,7 @@ neuron_factors = factors[0].neuron_factors       # neurons × components
 trial_factors = factors[0].trial_factors         # trials × components
 </code></pre>
 <p>For your own recordings, pass a list of arrays in <strong>neurons × time × trials</strong> order. Sessions may have different neuron and trial counts, but must share time bins.</p>
-<p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a></p>
-<h2>See the factors</h2>
-<p>The fit separates shared time courses from neuron weights and trial-to-trial changes:</p>
-<p><img src="assets/quickstart.png" alt="Shared temporal factors, neuron weights and trial factors from simulated recordings"></p>
-<p>Plot the quickstart's factors with Matplotlib:</p>
-<pre><code class="language-python">import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(1, 3, figsize=(10, 3), layout=&quot;constrained&quot;)
-axes[0].plot(time_factors.detach().numpy())
-axes[0].set_title(&quot;Shared time courses&quot;)
-axes[1].imshow(neuron_factors.detach().numpy(), aspect=&quot;auto&quot;, cmap=&quot;RdBu_r&quot;)
-axes[1].set_title(&quot;Neuron weights&quot;)
-axes[2].plot(trial_factors.detach().numpy())
-axes[2].set_title(&quot;Trial weights&quot;)
-plt.show()
-</code></pre>
-<p>Read left to right: when each component is active, which neurons contribute, and how its strength varies across trials. <a href="https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py">Full example with axis labels</a>.</p>
+<p><a href="model-and-outputs.html">Model and outputs</a> · <a href="getting-started.html">Use your recordings</a> · <a href="plotting.html">Plotting example</a></p>
 <h2>Install</h2>
 <p>Python 3.10+; GPU fitting is recommended for larger datasets (use <code>fit(&quot;cuda&quot;)</code>).</p>
 <pre><code class="language-bash">python -m pip install neuralign
@@ -42,7 +26,6 @@ plt.show()
 <pre><code class="language-bash">python -m pip install &quot;torch&gt;=2.9.1&quot; --index-url https://download.pytorch.org/whl/cpu
 python -m pip install neuralign
 </code></pre>
-<p>For plotting, add Matplotlib: <code>python -m pip install matplotlib</code>.</p>
 <h2>Paper</h2>
 <p>Neuralign is described in <a href="https://doi.org/10.64898/2026.11.12.766278"><em>Identifying aligned tensor decompositions across heterogeneous neural datasets</em></a> (bioRxiv, 2026).</p>
 <p>Please cite the software and manuscript when using Neuralign in research. <a href="https://github.com/MiklosKralik/neuralign/blob/main/CITATION.cff">Citation</a> · <a href="https://github.com/MiklosKralik/neuralign/blob/main/LICENSE">MIT License</a>.</p>

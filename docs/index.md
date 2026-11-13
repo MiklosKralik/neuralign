@@ -22,30 +22,7 @@ trial_factors = factors[0].trial_factors         # trials × components
 
 For your own recordings, pass a list of arrays in **neurons × time × trials** order. Sessions may have different neuron and trial counts, but must share time bins.
 
-[Model and outputs](model-and-outputs.md) · [Use your recordings](getting-started.md)
-
-## See the factors
-
-The fit separates shared time courses from neuron weights and trial-to-trial changes:
-
-![Shared temporal factors, neuron weights and trial factors from simulated recordings](assets/quickstart.png)
-
-Plot the quickstart's factors with Matplotlib:
-
-```python
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(1, 3, figsize=(10, 3), layout="constrained")
-axes[0].plot(time_factors.detach().numpy())
-axes[0].set_title("Shared time courses")
-axes[1].imshow(neuron_factors.detach().numpy(), aspect="auto", cmap="RdBu_r")
-axes[1].set_title("Neuron weights")
-axes[2].plot(trial_factors.detach().numpy())
-axes[2].set_title("Trial weights")
-plt.show()
-```
-
-Read left to right: when each component is active, which neurons contribute, and how its strength varies across trials. [Full example with axis labels](https://github.com/MiklosKralik/neuralign/blob/main/examples/quickstart.py).
+[Model and outputs](model-and-outputs.md) · [Use your recordings](getting-started.md) · [Plotting example](plotting.md)
 
 ## Install
 
@@ -61,8 +38,6 @@ For CPU-only installation, install CPU PyTorch first:
 python -m pip install "torch>=2.9.1" --index-url https://download.pytorch.org/whl/cpu
 python -m pip install neuralign
 ```
-
-For plotting, add Matplotlib: `python -m pip install matplotlib`.
 
 ## Paper
 

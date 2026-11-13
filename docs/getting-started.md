@@ -28,4 +28,4 @@ To guide alignment with known conditions, pass `trial_labels=labels_by_session`,
 
 See [model outputs](model-and-outputs.md) to choose factors or trajectories, and the [API](api.md) for fitting options.
 
-The [plotting example](assets/quickstart.py) also needs Matplotlib (`python -m pip install matplotlib`). It saves a figure next to the script.
+The [plotting example](plotting.md) also needs Matplotlib (`python -m pip install matplotlib`). It saves a figure next to the script.

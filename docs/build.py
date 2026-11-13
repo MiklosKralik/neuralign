@@ -7,11 +7,12 @@ from urllib.parse import urlsplit, urlunsplit
 from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parent
-PAGES = ("index", "getting-started", "model-and-outputs", "api", "reproducibility")
+PAGES = ("index", "getting-started", "model-and-outputs", "plotting", "api", "reproducibility")
 NAV = {
     "index": "Neuralign",
     "getting-started": "Your recordings",
     "model-and-outputs": "Outputs",
+    "plotting": "Plotting example",
     "api": "API",
     "reproducibility": "Save a fit",
 }
@@ -23,6 +24,15 @@ home = home.replace(f"[Documentation]({SITE})", "[Model and outputs](model-and-o
 for page in PAGES:
     home = home.replace(f"{SITE}{page}.html", f"{page}.md")
 (ROOT / "index.md").write_text(home)
+
+example = (ROOT.parent / "examples/quickstart.py").read_text()
+(ROOT / "plotting.md").write_text(
+    "# Plotting example\n\n"
+    "Shared time courses, with neuron and trial factors for two sessions. "
+    "Requires Matplotlib (`python -m pip install matplotlib`).\n\n"
+    f"```python\n{example}```\n\n"
+    "![Shared temporal factors and neuron and trial factors for two sessions](assets/quickstart.png)\n"
+)
 
 renderer = MarkdownIt("default", {"html": True})
 for page in PAGES:
